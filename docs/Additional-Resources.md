@@ -1,8 +1,16 @@
-Video walk through - https://github.com/ct-Open-Source/tuya-convert/issues/42
+# Additional Resources
 
-Proxmox - Tuya-Convert LXC enviroment - https://github.com/whiskerz007/proxmox_tuya-convert_container
+## Video Tutorials
 
-Setup A Community Version of Proxmox (for above script to work) - Copy & Paste the entire section below and run once.
+**Video walkthrough** (from original tuya-convert project): https://github.com/ct-Open-Source/tuya-convert/issues/42
+
+## Third-Party Tools
+
+**Proxmox - Tuya-Convert LXC environment**: https://github.com/whiskerz007/proxmox_tuya-convert_container
+
+### Setup Proxmox Community Version
+
+For the above Proxmox script to work, you may need to setup the community version. Copy and paste the entire section below and run once:
 ```
 # Disable Commercial Repo
 sed -i "s/^deb/\#deb/" /etc/apt/sources.list.d/pve-enterprise.list
