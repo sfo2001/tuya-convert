@@ -1,9 +1,17 @@
-Here we will share and organize our findings and data from [#483](https://github.com/ct-Open-Source/tuya-convert/issues/483)
+# PSK Identity 02 Protocol
 
-### Please help edit this document!
-Much of this was bulk copy-pasted and needs to be transformed into a useful form
+**Last Updated:** 2025-11-05
+**Status:** 🔄 Research In Progress
+**Implementation:** `scripts/psk-frontend.py`
+**Related:** [Research Procedures](PSK-Research-Procedures.md) | [Affected Devices](PSK-Identity-02-Affected-Devices.md)
 
-# Does output in your smarthack-psk.log look like this?:
+## Overview
+
+This document consolidates community research into the PSK Identity 02 protocol used by newer Tuya devices. This protocol prevents OTA flashing via tuya-convert.
+
+**Original research discussion:** [Issue #483](https://github.com/ct-Open-Source/tuya-convert/issues/483)
+
+## Does output in your smarthack-psk.log look like this?
 ```
 new client on port 443 from 10.42.42.25:3694
 ID: 0242416f68626d6436614739314946523126e9b5b5bdabbb170482e008c373d879b5d1540ec094d09bb7d53fa3fc9645df
