@@ -3,13 +3,35 @@ set -euo pipefail
 
 debianInstall() {
 	sudo apt-get update
-	sudo apt-get install -y git iw dnsmasq rfkill hostapd screen curl build-essential python3-pip python3-setuptools python3-wheel python3-dev mosquitto haveged net-tools libssl-dev iproute2 iputils-ping
-	sudo python3 -m pip install --user --upgrade paho-mqtt tornado git+https://github.com/drbild/sslpsk.git pycryptodomex
+	sudo apt-get install -y git iw dnsmasq rfkill hostapd screen curl build-essential python3-pip python3-setuptools python3-wheel python3-dev python3-venv mosquitto haveged net-tools libssl-dev iproute2 iputils-ping
+
+	# Create Python virtual environment to comply with PEP 668
+	# This prevents "externally managed environment" errors on modern distributions
+	echo "Creating Python virtual environment..."
+	python3 -m venv venv
+
+	# Install Python packages into the virtual environment
+	echo "Installing Python packages into virtual environment..."
+	source venv/bin/activate
+	pip install --upgrade pip
+	pip install -r requirements.txt
+	deactivate
 }
 
 archInstall() {
-	sudo pacman -S --needed git iw dnsmasq hostapd screen curl python-pip python-wheel python-pycryptodomex python-paho-mqtt python-tornado mosquitto haveged net-tools openssl
-	sudo python -m pip install --user --upgrade git+https://github.com/drbild/sslpsk.git
+	sudo pacman -S --needed git iw dnsmasq hostapd screen curl python-pip python-wheel mosquitto haveged net-tools openssl
+
+	# Create Python virtual environment to comply with PEP 668
+	# This prevents "externally managed environment" errors on modern distributions
+	echo "Creating Python virtual environment..."
+	python -m venv venv
+
+	# Install Python packages into the virtual environment
+	echo "Installing Python packages into virtual environment..."
+	source venv/bin/activate
+	pip install --upgrade pip
+	pip install -r requirements.txt
+	deactivate
 }
 
 if [[ -e /etc/os-release ]]; then
@@ -34,3 +56,6 @@ else
 fi
 
 echo "Ready to start upgrade"
+echo
+echo "Python packages have been installed in a virtual environment (venv/)"
+echo "The virtual environment will be automatically activated when you run ./start_flash.sh"
