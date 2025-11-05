@@ -113,9 +113,6 @@ scripts/smartconfig/package-lock.json
 backups/
 data
 
-# wiki backups
-wiki-backup-*/
-
 # flag files
 eula_accepted
 
