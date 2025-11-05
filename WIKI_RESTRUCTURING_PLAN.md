@@ -471,13 +471,20 @@ Home (Landing page with full navigation)
 - **Commit:** Part of "docs: migrate wiki to main repository /docs directory" (256a89b)
 - **Completed:** 2025-11-04
 
-#### Step 1.2: Fix Additional-Resources Links
+#### Step 1.2: Fix Additional-Resources Links ✅
+- **Status:** COMPLETE
 - **Action:** Update issue link to be relative or keep as external reference
-- **File:** `Additional-Resources.md`
+- **File:** `docs/Additional-Resources.md`
+- **Changes:**
+  - Added standard header with Last Updated and Status
+  - Added clear note about external links at top of page
+  - Kept external links to original project (appropriate as external references)
+  - All links verified as working and properly labeled
 - **Validation:**
-  - [ ] Links work correctly
-  - [ ] External links clearly marked as external
-- **Commit:** "docs(wiki): fix links in Additional-Resources"
+  - [x] Links work correctly
+  - [x] External links clearly marked as external
+- **Commit:** "docs(wiki): standardize Additional-Resources with external link documentation"
+- **Completed:** 2025-11-05
 
 #### Step 1.3: Fix Helping-with-new-psk-format File Links
 - **Action:** Either migrate files to your fork or update links
@@ -975,6 +982,7 @@ For each technical page:
 | plan | docs: create detailed refactoring plan for PSK collaboration document | 2025-11-05 | e760824 | ✅ |
 | meta | docs: document wiki working directory location | 2025-11-05 | 4807756 | ✅ |
 | meta | docs: update refactoring plan with completion status | 2025-11-05 | a446feb | ✅ |
+| 1.2 | docs(wiki): standardize Additional-Resources with external link documentation | 2025-11-05 | [pending] | ⏳ |
 
 ---
 
