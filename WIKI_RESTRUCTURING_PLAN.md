@@ -394,7 +394,7 @@ Home (Landing page with full navigation)
 | Phase 2: Create Standard Templates | ✅ Complete | 1/1 (100%) | 2025-11-05 | 2025-11-05 | [WIKI_PHASE_2_TEMPLATES.md](WIKI_PHASE_2_TEMPLATES.md) |
 | Phase 3: Complete Incomplete Pages | ✅ Complete | 3/3 (100%) | 2025-11-05 | 2025-11-05 | [WIKI_PHASE_3_INCOMPLETE_PAGES.md](WIKI_PHASE_3_INCOMPLETE_PAGES.md) |
 | Phase 4: Create New Essential Pages | 🔄 In Progress | 4/7 (57%) | 2025-11-05 | - | [WIKI_PHASE_4_NEW_PAGES.md](WIKI_PHASE_4_NEW_PAGES.md) |
-| Phase 5: Apply Templates to Existing Pages | ⏳ Pending | 0/5 (0%) | - | - | [WIKI_PHASE_5_APPLY_TEMPLATES.md](WIKI_PHASE_5_APPLY_TEMPLATES.md) |
+| Phase 5: Apply Templates to Existing Pages | ⏳ Pending | 0/8 (0%) | - | - | [WIKI_PHASE_5_APPLY_TEMPLATES.md](WIKI_PHASE_5_APPLY_TEMPLATES.md) |
 | Phase 6: Create New Home Page | ⏳ Pending | 0/1 (0%) | - | - | [WIKI_PHASE_6_NEW_HOME.md](WIKI_PHASE_6_NEW_HOME.md) |
 | Phase 7: Cross-Reference and Link All Pages | ⏳ Pending | 0/2 (0%) | - | - | [WIKI_PHASE_7_CROSS_REFERENCE.md](WIKI_PHASE_7_CROSS_REFERENCE.md) |
 | Phase 8: Final Validation | ⏳ Pending | 0/4 (0%) | - | - | [WIKI_PHASE_8_VALIDATION.md](WIKI_PHASE_8_VALIDATION.md) |
@@ -406,10 +406,10 @@ Home (Landing page with full navigation)
 - **Completed Phases:** 4 (40%)
 - **In Progress Phases:** 1 (10%)
 - **Pending Phases:** 5 (50%)
-- **Total Steps:** 34
-- **Completed Steps:** 19 (56%)
+- **Total Steps:** 37 (Phase 5 expanded from 5 to 8 sub-steps with PSK extraction integration)
+- **Completed Steps:** 19 (51%)
 - **In Progress Steps:** 0 (0%)
-- **Pending Steps:** 15 (44%)
+- **Pending Steps:** 18 (49%)
 
 ### Recent Activity
 
@@ -456,21 +456,26 @@ Each phase has a dedicated document with detailed steps, tracking, and commit lo
    - Clean up "Collaboration-document-for-PSK-Identity-02" ✅
    - Complete "Failed-attempts-and-tracked-requirements" ✅
 
-5. **[Phase 4: Create New Essential Pages](WIKI_PHASE_4_NEW_PAGES.md)** ⏳ Pending
-   - Installation guide
-   - Quick start guide
-   - Docker setup guide
-   - System architecture
-   - Protocol overview
-   - API reference
-   - Contributing guide
+5. **[Phase 4: Create New Essential Pages](WIKI_PHASE_4_NEW_PAGES.md)** 🔄 In Progress (4/7 complete)
+   - Installation guide ✅
+   - Quick start guide ✅
+   - Docker setup guide ✅
+   - System architecture ✅
+   - Protocol overview ⏳
+   - API reference ⏳
+   - Contributing guide ⏳
 
-6. **[Phase 5: Apply Templates to Existing Pages](WIKI_PHASE_5_APPLY_TEMPLATES.md)** ⏳ Pending
+6. **[Phase 5: Apply Templates to Existing Pages](WIKI_PHASE_5_APPLY_TEMPLATES.md)** ⏳ Pending (8 sub-steps)
    - Standardize device compatibility pages
    - Standardize setup guides
    - Standardize advanced topic pages
-   - Standardize technical reference pages
+   - Complete PSK documentation restructuring (4 sub-steps):
+     - Extract PSK firmware database
+     - Extract PSK research tools
+     - Clean up PSK main document
+     - Standardize PSK key extraction page
    - Standardize troubleshooting page
+   - **Note:** Integrates work from PSK_EXTRACTION_PLAN.md
 
 7. **[Phase 6: Create New Home Page](WIKI_PHASE_6_NEW_HOME.md)** ⏳ Pending
    - Design new home page
@@ -623,6 +628,7 @@ Types: `docs`, `feat`, `fix`, `refactor`, `test`, `chore`
 | 2025-11-04 | Keep device list pages separate | Too large to combine, better user experience |
 | 2025-11-04 | Create new hub pages instead of mega-pages | Better navigation, easier maintenance |
 | 2025-11-05 | Split plan into phase documents | Better organization, easier tracking |
+| 2025-11-05 | Integrate PSK_EXTRACTION_PLAN.md into Phase 5 | Unified plan, PSK work fits naturally in template application phase |
 
 ### Open Questions
 
@@ -642,8 +648,8 @@ Types: `docs`, `feat`, `fix`, `refactor`, `test`, `chore`
 
 - **[WIKI_CONTENT_INVENTORY.md](WIKI_CONTENT_INVENTORY.md)** - Complete content inventory for validation
 - **[WIKI_CODE_ALIGNMENT.md](WIKI_CODE_ALIGNMENT.md)** - Code-to-wiki mapping for technical accuracy
-- **[COLLAB_DOC_REFACTORING_PLAN.md](COLLAB_DOC_REFACTORING_PLAN.md)** - Detailed plan for PSK document cleanup
-- **[PSK_EXTRACTION_PLAN.md](PSK_EXTRACTION_PLAN.md)** - PSK-specific technical documentation
+- **[COLLAB_DOC_REFACTORING_PLAN.md](COLLAB_DOC_REFACTORING_PLAN.md)** - Detailed plan for PSK document cleanup (deprecated, work integrated into Phase 5)
+- ~~**[PSK_EXTRACTION_PLAN.md](PSK_EXTRACTION_PLAN.md)**~~ - PSK extraction plan (INTEGRATED into Phase 5.4, will be removed)
 
 ---
 
