@@ -251,7 +251,7 @@ For each new page:
 | Step | Commit Message | Date | SHA | Validated |
 |------|---------------|------|-----|-----------|
 | 4.1 | docs(wiki): create Installation guide | 2025-11-05 | e781e69 | ✅ |
-| 4.2 | docs(wiki): create Quick Start Guide | 2025-11-05 | [pending] | ✅ |
+| 4.2 | docs(wiki): create Quick Start Guide | 2025-11-05 | 3e63203 | ✅ |
 | 4.3 | [pending] | - | - | ⏳ |
 | 4.4 | [pending] | - | - | ⏳ |
 | 4.5 | [pending] | - | - | ⏳ |
