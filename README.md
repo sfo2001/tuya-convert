@@ -51,6 +51,24 @@ Unfortunately many devices have already been shipping with the new patched firmw
     # cd tuya-convert
     # ./install_prereq.sh
 
+**Note for Modern Linux Distributions (Debian 12+, Ubuntu 23.04+, Fedora 38+):**
+
+Starting with `install_prereq.sh`, Python dependencies are now installed in a virtual environment to comply with PEP 668 and avoid "externally managed environment" errors. The virtual environment is automatically activated when you run `./start_flash.sh`, so no manual intervention is required.
+
+If you need to manually activate the virtual environment (e.g., for debugging):
+    # source ./activate_venv.sh
+
+This change addresses [upstream issue #1159](https://github.com/ct-Open-Source/tuya-convert/issues/1159).
+
+**⚠️ TESTING NEEDED:** This virtual environment implementation has been tested for basic functionality but requires testing on:
+- Debian 12 (Bookworm)
+- Ubuntu 23.04+ and Ubuntu Server
+- Raspberry Pi OS (latest)
+- Fedora 38+
+- Other distributions listed in the REQUIREMENTS section
+
+If you test this on any of these systems, please report your results by opening an issue or pull request.
+
 ### FLASH third-party firmware
 BE SURE THE FIRMWARE FITS YOUR DEVICE!
 1. Place your binary file in the `/files/` directory or use one of the included firmware images.
@@ -114,6 +132,25 @@ Significant time and resources are devoted to supporting and maintaining this pr
 - [PayPal](https://paypal.me/kueblc)
 
 You can also give back by providing or improving documentation, tutorials, issue support, bug reports, feature requests, and pull requests. When planning to contribute major code changes, please post your intention beforehand so we can coordinate, avoid redundant contributions and ensure the changes match project philosophy. Any major PR should be made against the `development` branch.
+
+## TROUBLESHOOTING
+
+### Python Environment Issues
+
+**Error: "This environment is externally managed"**
+- This error occurs on modern Linux distributions (Debian 12+, Ubuntu 23.04+) that implement PEP 668
+- **Solution:** This has been fixed in the latest version. Run `./install_prereq.sh` again, which will create a virtual environment automatically
+- The virtual environment is automatically activated when you run `./start_flash.sh`
+
+**Virtual environment not found warning**
+- If you see "WARNING: Virtual environment not found!" when running `./start_flash.sh`
+- **Solution:** Run `./install_prereq.sh` to create the virtual environment
+- For existing installations, you can create it manually: `python3 -m venv venv && source venv/bin/activate && pip install paho-mqtt tornado pycryptodomex && pip install git+https://github.com/drbild/sslpsk.git`
+
+**Python scripts can't find dependencies**
+- Ensure the virtual environment is activated: `source ./activate_venv.sh`
+- Check if packages are installed: `pip list | grep -E 'paho-mqtt|tornado|pycryptodomex|sslpsk'`
+- If packages are missing, reinstall: `./install_prereq.sh`
 
 ## RELATED WORKS
 - [TuyAPI](https://github.com/codetheweb/tuyapi) NPM library for LAN control of Tuya devices with stock firmware

@@ -65,6 +65,18 @@ normal=$(tput sgr0)
 #
 setup () {
 	echo "tuya-convert $(git describe --tags)"
+
+	# Activate Python virtual environment if it exists
+	# This ensures all Python scripts can find their dependencies
+	if [ -d "venv" ]; then
+		echo "Activating Python virtual environment..."
+		source venv/bin/activate
+	else
+		echo "WARNING: Virtual environment not found!"
+		echo "Please run ./install_prereq.sh to set up the environment properly."
+		echo "Attempting to continue with system Python packages..."
+	fi
+
 	pushd scripts >/dev/null || exit
 
 	# Run environment checks (network adapter, dependencies, etc.)
@@ -134,6 +146,11 @@ cleanup () {
 	echo "Closing AP"
 	# Kill the hostapd process to stop the access point
 	sudo pkill hostapd
+
+	# Deactivate virtual environment if it was activated
+	if [ -n "${VIRTUAL_ENV:-}" ]; then
+		deactivate
+	fi
 
 	echo "Exiting..."
 	popd >/dev/null || exit
