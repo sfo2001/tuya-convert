@@ -273,7 +273,7 @@ For each new page:
 |------|---------------|------|-----|-----------|
 | 4.1 | docs(wiki): create Installation guide | 2025-11-05 | e781e69 | ✅ |
 | 4.2 | docs(wiki): create Quick Start Guide | 2025-11-05 | 3e63203 | ✅ |
-| 4.3 | docs(wiki): create Docker setup guide | 2025-11-05 | [pending] | ✅ |
+| 4.3 | docs(wiki): create Docker setup guide | 2025-11-05 | 8296f62 | ✅ |
 | 4.4 | [pending] | - | - | ⏳ |
 | 4.5 | [pending] | - | - | ⏳ |
 | 4.6 | [pending] | - | - | ⏳ |
