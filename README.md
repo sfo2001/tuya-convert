@@ -25,6 +25,7 @@ Since Tuya devices are spread around the world with likely a vast amount of diff
 ## REQUIREMENTS
 * Linux computer with a wifi adapter
 * Secondary wifi device (e.g. smartphone)
+* **Python 3.8 or newer** (Python 3.12+ fully supported)
 * Dependencies will be installed by `install_prereq.sh`
 
 These scripts were tested in
@@ -59,6 +60,22 @@ If you need to manually activate the virtual environment (e.g., for debugging):
     # source ./activate_venv.sh
 
 This change addresses [upstream issue #1159](https://github.com/ct-Open-Source/tuya-convert/issues/1159).
+
+**Python 3.8+ Requirement:**
+
+Tuya-convert now requires **Python 3.8 or newer** to support modern SSL/TLS libraries and Python 3.12+ compatibility. The deprecated `ssl.wrap_socket()` function has been replaced with the modern `SSLContext` API via the `sslpsk3` library.
+
+This change addresses [upstream issue #1153](https://github.com/ct-Open-Source/tuya-convert/issues/1153) where users on Python 3.12+ encountered `AttributeError: module 'ssl' has no attribute 'wrap_socket'`.
+
+**Supported Python Versions:**
+- ✅ Python 3.8 - 3.13+
+- ❌ Python 3.7 and older (EOL)
+
+**Recommended Distributions:**
+- Ubuntu 20.04 LTS or newer (Python 3.8+)
+- Debian 11 (Bullseye) or newer (Python 3.9+)
+- Raspberry Pi OS (current release, Python 3.9+)
+- Any modern Linux distribution with Python 3.8+
 
 **⚠️ TESTING NEEDED:** This virtual environment implementation has been tested for basic functionality but requires testing on:
 - Debian 12 (Bookworm)
@@ -142,6 +159,12 @@ You can also give back by providing or improving documentation, tutorials, issue
 - **Solution:** This has been fixed in the latest version. Run `./install_prereq.sh` again, which will create a virtual environment automatically
 - The virtual environment is automatically activated when you run `./start_flash.sh`
 
+**Error: "AttributeError: module 'ssl' has no attribute 'wrap_socket'"**
+- This error occurs on Python 3.12+ because `ssl.wrap_socket()` was removed
+- **Solution:** This has been fixed in the latest version. The code now uses the modern `SSLContext` API via `sslpsk3`
+- Run `./install_prereq.sh` to update dependencies
+- **Note:** Requires Python 3.8 or newer. If you're on an older Python version, please upgrade to Python 3.8+
+
 **Virtual environment not found warning**
 - If you see "WARNING: Virtual environment not found!" when running `./start_flash.sh`
 - **Solution:** Run `./install_prereq.sh` to create the virtual environment
@@ -149,8 +172,14 @@ You can also give back by providing or improving documentation, tutorials, issue
 
 **Python scripts can't find dependencies**
 - Ensure the virtual environment is activated: `source ./activate_venv.sh`
-- Check if packages are installed: `pip list | grep -E 'paho-mqtt|tornado|pycryptodomex|sslpsk'`
+- Check if packages are installed: `pip list | grep -E 'paho-mqtt|tornado|pycryptodomex|sslpsk3'`
 - If packages are missing, reinstall: `./install_prereq.sh`
+
+**Python version too old**
+- If you see errors about missing features or incompatible packages
+- Check your Python version: `python3 --version`
+- **Minimum required:** Python 3.8
+- **Solution:** Upgrade to a modern Linux distribution (Ubuntu 20.04+, Debian 11+, Raspberry Pi OS current)
 
 ## RELATED WORKS
 - [TuyAPI](https://github.com/codetheweb/tuyapi) NPM library for LAN control of Tuya devices with stock firmware

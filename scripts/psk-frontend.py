@@ -3,7 +3,7 @@
 import socket
 import select
 import ssl
-import sslpsk
+from sslpsk3 import SSLPSKContext
 
 from Cryptodome.Cipher import AES
 from hashlib import md5
@@ -58,12 +58,16 @@ class PskFrontend():
 	
 	def new_client(self, s1):
 		try:
-			ssl_sock = sslpsk.wrap_socket(s1,
-				server_side = True,
-				ssl_version=ssl.PROTOCOL_TLSv1_2,
-				ciphers='PSK-AES128-CBC-SHA256',
-				psk=lambda identity: gen_psk(identity, self.hint),
-				hint=self.hint)
+			# Create SSLPSKContext for TLS-PSK connection
+			context = SSLPSKContext(ssl.PROTOCOL_TLS_SERVER)
+			context.maximum_version = ssl.TLSVersion.TLSv1_2
+			context.set_ciphers('PSK-AES128-CBC-SHA256')
+			context.set_psk_server_callback(
+				lambda identity: gen_psk(identity, self.hint),
+				identity_hint=self.hint
+			)
+
+			ssl_sock = context.wrap_socket(s1, server_side=True)
 
 			s2 = client(self.host, self.port)
 			self.sessions.append((ssl_sock, s2))
