@@ -137,81 +137,18 @@ It may be that the `pskKey` is totally random and only stored on Tuya servers an
     - If it's base62, then this would be a (2*8) 24-byte value, which are 192 bits. Maybe it's an AES key?
   - Does anybody have an idea, why the length of the pskKey is 37? That sounds rather random.
 
-## Procedures
+## Research Procedures
 
-### Decrypting network captures with known PSK
+Detailed procedures for capturing and analyzing PSK data have been moved to a dedicated page:
 
-```
-tshark -o "ssl.psk:3ce2b65bc30c7d91bf2e50884a49f6ddc77a8c44b991a1120b298ab846e97704" -z follow,ssl,ascii,9 -r gosund-upgrade.pcap -Y null
-```
-This assumes you:
-- want to look at stream number 9
-- are reading gosund-upgrade.pcap, found below as #34
-- will replace 3ce2b65bc30c7d91bf2e50884a49f6ddc77a8c44b991a1120b298ab846e97704 with the actual psk if you want to look at a different pcap or stream using a different hint
-  - see psk-frontend.py for how to calculate psk when looking at streams using identity 01
+**👉 [PSK Research Procedures](PSK-Research-Procedures.md)**
 
-### Creating network captures and firmware backups
-
-1. Install `create_ap`
-```
-git clone https://github.com/oblique/create_ap
-cd create_ap
-sudo make install
-cd ..
-```
-2. Setup a pass-through AP (assuming your interface is `wlan0`)
-```
-sudo create_ap wlan0 wlan0 MyAccessPoint MyPassPhrase
-```
-3. Start recording
-```
-tcpdump -i wlan0 -w capture.pcap
-```
-4. Connect your phone to `MyAccessPoint` (or whatever you decide to call it)
-5. Use the app (SmartLife or vendor branded app) to pair the device
-6. Wait for registration to complete
-7. Disconnect the device
-8. Go back to `tcpdump` and press `Ctrl` + `C`
-9. Disassemble the device and connect to the serial port of the ESP
-10. Download the firmware using [`esptool`](https://github.com/espressif/esptool)
-```
-esptool.py read_flash 0 0x100000 firmware.bin
-```
-11. Upload both `capture.pcap` and `firmware.bin`
-
-#### Experiment:
-
-The question here is how are devices with old firmware being integrated into Tuya's newer security scheme, which can help us understand how these new PSKs are created.
-
-- It may be when a device is first updated through the app, that the new randomly generated PSK is linked to the device MAC (or other device identifier), and that same PSK is issued again after downgrading and updating
-  - we could potentially obtain the PSK by faking the API call to the cloud, however this strategy would likely be patched against quickly
-- Or a random PSK is generated each time
-  - this would be bad
-
-##### Requirements:
-
-- Tuya device with
-  - old firmware that works with TuyaConvert, or
-  - a converted device with the original backup for that device (MAC address **must** match)
-- firmware upgrade available for that device model in the Tuya app
-  - Confirmed that it is possible to get the new PSK firmware through the app, but not guaranteed to be there for all devices
-  - Teckin SB50 firmware was upgraded through Tuya app to new PSK firmware
-  - Powertech SL225X sold with new PSK firmware, but no firmware update available in Tuya app for SL225x devices with old firmware
-- ability to open the device and serial flash it
-
-##### Steps:
-
-1) take a device with pre-patched Tuya firmware and back it up
-2) step up network capture via WireShark or tcpdump
-3) register the device to the app and get the updated patched firmware
-4) backup the new firmware to determine the new PSK
-5) flash the device back to the pre-patched firmware
-6) register the device again to the Tuya app to get the patched firmware
-7) backup the new firmware, extract the PSK and determine if it matches the PSK from step 3)
-8) share your findings here!
-
-##### Issues:
-Several attempts have been made to follow the steps above (see files 10 and 34 in the Firmware table above). It seems that devices which ship with PSK ID 01 firmware and then are updated to firmware which uses PSK ID 02, do not store the pskKey at 0xfb000 as expected. So this experiment is stalled until we can find where pskKey is being stored on these devices, if at all. It is not found in the same 37 character base64-ish format.
+This includes:
+- Decrypting network captures with known PSK
+- Creating network captures and firmware backups
+- Step-by-step experimental procedures
+- Requirements and known issues
+- Tools and setup instructions
 
 # Data
 
