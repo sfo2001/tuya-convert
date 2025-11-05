@@ -236,7 +236,7 @@ Completely rewrote the document with:
 
 #### Commit
 - **Message:** "docs(wiki): complete system requirements page and resolve TODOs"
-- **SHA:** [pending]
+- **SHA:** 194e362
 - **Date:** 2025-11-05
 
 ---
@@ -272,7 +272,7 @@ Completely rewrote the document with:
 | 3.2c | docs: replace device list section with reference to extracted file | 2025-11-05 | 8a0c649 | ✅ |
 | 3.2d | docs: add code references to PSK Identity 02 document | 2025-11-05 | 3ffadcb | ✅ |
 | plan | docs: create detailed refactoring plan for PSK collaboration document | 2025-11-05 | e760824 | ✅ |
-| 3.3 | docs(wiki): complete system requirements page and resolve TODOs | 2025-11-05 | [pending] | ⏳ |
+| 3.3 | docs(wiki): complete system requirements page and resolve TODOs | 2025-11-05 | 194e362 | ✅ |
 
 ---
 
