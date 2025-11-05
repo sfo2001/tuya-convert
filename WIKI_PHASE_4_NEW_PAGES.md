@@ -233,7 +233,7 @@ For each new page:
 
 | Step | Commit Message | Date | SHA | Validated |
 |------|---------------|------|-----|-----------|
-| 4.1 | docs(wiki): create Installation guide | 2025-11-05 | [pending] | ✅ |
+| 4.1 | docs(wiki): create Installation guide | 2025-11-05 | e781e69 | ✅ |
 | 4.2 | [pending] | - | - | ⏳ |
 | 4.3 | [pending] | - | - | ⏳ |
 | 4.4 | [pending] | - | - | ⏳ |
