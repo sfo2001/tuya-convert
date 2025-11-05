@@ -982,7 +982,7 @@ For each technical page:
 | plan | docs: create detailed refactoring plan for PSK collaboration document | 2025-11-05 | e760824 | ✅ |
 | meta | docs: document wiki working directory location | 2025-11-05 | 4807756 | ✅ |
 | meta | docs: update refactoring plan with completion status | 2025-11-05 | a446feb | ✅ |
-| 1.2 | docs(wiki): standardize Additional-Resources with external link documentation | 2025-11-05 | [pending] | ⏳ |
+| 1.2 | docs(wiki): standardize Additional-Resources with external link documentation | 2025-11-05 | de9178e | ✅ |
 
 ---
 
