@@ -47,7 +47,24 @@ It may be that the `pskKey` is totally random and only stored on Tuya servers an
 - What is with pskKey being 37 characters long? And why does it consist of a-zA-Z0-9 (like base64 but without '+' and '/')
   - If it's base62, then this would be a (16+12) 28-byte value, which are 224 bits. Maybe it's a SHA-224 hash?
 - How can we encourage people to check back in this section for things to help with?
-  - I would 1) suggest creating a discussion thread than is pinned, much like #483 was and posting any useful information that comes out of it here. 2) rather than pin issue #483, it would be better to pin a link directly to this wiki.  Maybe create a new issue that is closed/locked that only contains a link to this wiki if pinning the wiki itself isn't possible. 
+  - I would 1) suggest creating a discussion thread than is pinned, much like #483 was and posting any useful information that comes out of it here. 2) rather than pin issue #483, it would be better to pin a link directly to this wiki.  Maybe create a new issue that is closed/locked that only contains a link to this wiki if pinning the wiki itself isn't possible.
+
+# Implementation Details
+
+The PSK Identity 02 protocol is implemented in tuya-convert:
+
+**Code Reference:** `scripts/psk-frontend.py`
+- **Line 12:** Identity prefix constant: `IDENTITY_PREFIX = b"BAohbmd6aG91IFR1"`
+- **Lines 26-36:** `gen_psk()` function - PSK generation algorithm
+- **Lines 48-49:** Hint value used in PSK calculation
+- **Lines 61-66:** TLS-PSK setup with cipher suite `PSK-AES128-CBC-SHA256`
+
+**Key Technical Details from Code:**
+- PSK Identity format: `\x02` + prefix + SHA256(gwId)
+- Cipher suite: `PSK-AES128-CBC-SHA256`
+- PSK derivation: AES-CBC with key=MD5(hint[-16:]), IV=MD5(identity)
+
+See the implementation for full algorithm details.
 
 # Findings (and comments that need to be edited into findings)
 - firmware ESP8266 RTOS SDK version did not change, but the hash and build time did
