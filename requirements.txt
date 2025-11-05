@@ -1,0 +1,19 @@
+# Python dependencies for tuya-convert
+#
+# These packages are required for the tuya-convert flashing process:
+# - paho-mqtt: MQTT protocol client for device communication
+# - tornado: Web server framework for fake registration server
+# - pycryptodomex: Cryptographic library for encryption/decryption
+# - sslpsk: SSL/TLS Pre-Shared Key support for secure connections
+#
+# Installation:
+#   pip install -r requirements.txt
+#
+# Note: For modern Linux distributions (Debian 12+, Ubuntu 23.04+, Fedora 38+),
+# these packages are installed in a virtual environment by install_prereq.sh
+# to comply with PEP 668.
+
+paho-mqtt
+tornado
+pycryptodomex
+git+https://github.com/drbild/sslpsk.git

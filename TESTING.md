@@ -79,7 +79,7 @@ Test the installation process on target distributions:
    deactivate
    ```
 
-   Expected packages:
+   Expected packages (as defined in requirements.txt):
    - paho-mqtt
    - tornado
    - pycryptodomex
@@ -202,13 +202,11 @@ If the virtual environment causes issues, you can roll back:
 # Remove virtual environment
 rm -rf venv/
 
-# Install packages system-wide (old method, may fail on modern distros)
-sudo python3 -m pip install --user paho-mqtt tornado pycryptodomex
-sudo python3 -m pip install --user git+https://github.com/drbild/sslpsk.git
+# Install packages system-wide using requirements.txt (old method, may fail on modern distros)
+sudo python3 -m pip install --user -r requirements.txt
 
 # Or use --break-system-packages flag (not recommended)
-python3 -m pip install --break-system-packages --user paho-mqtt tornado pycryptodomex
-python3 -m pip install --break-system-packages --user git+https://github.com/drbild/sslpsk.git
+python3 -m pip install --break-system-packages --user -r requirements.txt
 ```
 
 ## Questions or Issues

@@ -53,7 +53,7 @@ Unfortunately many devices have already been shipping with the new patched firmw
 
 **Note for Modern Linux Distributions (Debian 12+, Ubuntu 23.04+, Fedora 38+):**
 
-Starting with `install_prereq.sh`, Python dependencies are now installed in a virtual environment to comply with PEP 668 and avoid "externally managed environment" errors. The virtual environment is automatically activated when you run `./start_flash.sh`, so no manual intervention is required.
+Starting with `install_prereq.sh`, Python dependencies (defined in `requirements.txt`) are now installed in a virtual environment to comply with PEP 668 and avoid "externally managed environment" errors. The virtual environment is automatically activated when you run `./start_flash.sh`, so no manual intervention is required.
 
 If you need to manually activate the virtual environment (e.g., for debugging):
     # source ./activate_venv.sh
@@ -145,7 +145,7 @@ You can also give back by providing or improving documentation, tutorials, issue
 **Virtual environment not found warning**
 - If you see "WARNING: Virtual environment not found!" when running `./start_flash.sh`
 - **Solution:** Run `./install_prereq.sh` to create the virtual environment
-- For existing installations, you can create it manually: `python3 -m venv venv && source venv/bin/activate && pip install paho-mqtt tornado pycryptodomex && pip install git+https://github.com/drbild/sslpsk.git`
+- For existing installations, you can create it manually: `python3 -m venv venv && source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt && deactivate`
 
 **Python scripts can't find dependencies**
 - Ensure the virtual environment is activated: `source ./activate_venv.sh`
