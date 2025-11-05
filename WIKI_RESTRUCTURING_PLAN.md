@@ -454,9 +454,10 @@ Home (Landing page with full navigation)
 
 ### Phase 1: Fix Critical Issues
 
-#### Step 1.1: Fix Home Page Links
+#### Step 1.1: Fix Home Page Links ✅
+- **Status:** COMPLETE (completed in commit 256a89b during wiki migration)
 - **Action:** Replace ct-Open-Source links with relative links
-- **File:** `Home.md`
+- **File:** `docs/Home.md`
 - **Changes:**
   ```diff
   - * [HTTP (old) firmware](https://github.com/ct-Open-Source/tuya-convert/wiki/Compatible-devices-(HTTP-firmware))
@@ -465,9 +466,10 @@ Home (Landing page with full navigation)
   + * [HTTPS (new) firmware](Compatible-devices-(HTTPS-firmware))
   ```
 - **Validation:**
-  - [ ] Links work in GitHub wiki preview
-  - [ ] No external ct-Open-Source links remain
-- **Commit:** "docs(wiki): fix broken external links in Home page"
+  - [x] Links work in GitHub wiki preview
+  - [x] No external ct-Open-Source links remain
+- **Commit:** Part of "docs: migrate wiki to main repository /docs directory" (256a89b)
+- **Completed:** 2025-11-04
 
 #### Step 1.2: Fix Additional-Resources Links
 - **Action:** Update issue link to be relative or keep as external reference
@@ -520,20 +522,29 @@ Home (Landing page with full navigation)
   - [ ] Cross-references to PSK Identity 02 page
 - **Commit:** "docs(wiki): complete PSK format help page with full content"
 
-#### Step 3.2: Clean Up "Collaboration-document-for-PSK-Identity-02"
+#### Step 3.2: Clean Up "Collaboration-document-for-PSK-Identity-02" ✅
+- **Status:** COMPLETE (4 atomic steps with recovery points)
 - **Action:** Organize bulk copy-paste into proper sections
-- **File:** `Collaboration-document-for-PSK-Identity-02.md`
+- **File:** `docs/Collaboration-document-for-PSK-Identity-02.md`
 - **Changes:**
-  - Remove "Please help edit this document!"
-  - Organize findings into logical sections
-  - Add proper headings and structure
-  - Apply Reference Template
+  - Removed "Please help edit this document!" meta-commentary
+  - Added professional header with status and metadata
+  - Replaced Procedures section with reference to extracted file
+  - Replaced Device List section with reference to extracted file
+  - Added Implementation Details section with code references
+  - File reduced from 562 to 309 lines (45% reduction)
 - **Validation:**
-  - [ ] All original content preserved
-  - [ ] No information lost
-  - [ ] Professional appearance
-  - [ ] Code references added
-- **Commit:** "docs(wiki): restructure PSK Identity 02 documentation"
+  - [x] All original content preserved (100% in extracted files)
+  - [x] No information lost
+  - [x] Professional appearance
+  - [x] Code references added
+- **Commits:**
+  - 4eb1db9: "docs: add professional header to PSK Identity 02 document"
+  - a5e2bd1: "docs: replace procedures section with reference to extracted file"
+  - 8a0c649: "docs: replace device list section with reference to extracted file"
+  - 3ffadcb: "docs: add code references to PSK Identity 02 document"
+- **Plan:** `COLLAB_DOC_REFACTORING_PLAN.md` (detailed 4-step approach)
+- **Completed:** 2025-11-05
 
 #### Step 3.3: Complete "Failed-attempts-and-tracked-requirements"
 - **Action:** Resolve TODO items and complete content
@@ -929,9 +940,9 @@ For each technical page:
 | Phase | Status | Start Date | End Date | Notes |
 |-------|--------|------------|----------|-------|
 | Phase 0: Preparation | ✅ Complete | 2025-11-04 | 2025-11-05 | All steps complete (0.1-0.4) |
-| Phase 1: Fix Critical Issues | ⏳ Pending | - | - | - |
+| Phase 1: Fix Critical Issues | 🔄 Partial | 2025-11-04 | - | Step 1.1 complete (1.2-1.3 pending) |
 | Phase 2: Create Standard Templates | ⏳ Pending | - | - | - |
-| Phase 3: Complete Incomplete Pages | ⏳ Pending | - | - | - |
+| Phase 3: Complete Incomplete Pages | 🔄 Partial | 2025-11-05 | - | Steps 3.1-3.2 complete (3.3 pending) |
 | Phase 4: Create New Essential Pages | ⏳ Pending | - | - | - |
 | Phase 5: Apply Templates to Existing Pages | ⏳ Pending | - | - | - |
 | Phase 6: Create New Home Page | ⏳ Pending | - | - | - |
@@ -951,11 +962,19 @@ For each technical page:
 
 | Step | Commit Message | Date | SHA | Validated |
 |------|---------------|------|-----|-----------|
-| 0.1 | docs: create comprehensive wiki restructuring plan | 2025-11-04 | [TBD] | ✅ |
+| 0.1 | docs: create comprehensive wiki restructuring plan | 2025-11-04 | [merged] | ✅ |
 | 0.2 | N/A (backup only) | 2025-11-05 | N/A | ✅ |
-| 0.3 | docs: create wiki content inventory for validation | 2025-11-04 | [TBD] | ✅ |
-| 0.4 | docs: create wiki-code alignment mapping | 2025-11-04 | [TBD] | ✅ |
-| ... | ... | ... | ... | ... |
+| 0.3 | docs: create wiki content inventory for validation | 2025-11-04 | [merged] | ✅ |
+| 0.4 | docs: create wiki-code alignment mapping | 2025-11-04 | [merged] | ✅ |
+| 1.1 | docs: migrate wiki to main repository /docs directory | 2025-11-04 | 256a89b | ✅ |
+| 3.1 | docs: complete PSK format contribution guide | 2025-11-04 | 15df5b6 | ✅ |
+| 3.2a | docs: add professional header to PSK Identity 02 document | 2025-11-05 | 4eb1db9 | ✅ |
+| 3.2b | docs: replace procedures section with reference to extracted file | 2025-11-05 | a5e2bd1 | ✅ |
+| 3.2c | docs: replace device list section with reference to extracted file | 2025-11-05 | 8a0c649 | ✅ |
+| 3.2d | docs: add code references to PSK Identity 02 document | 2025-11-05 | 3ffadcb | ✅ |
+| plan | docs: create detailed refactoring plan for PSK collaboration document | 2025-11-05 | e760824 | ✅ |
+| meta | docs: document wiki working directory location | 2025-11-05 | 4807756 | ✅ |
+| meta | docs: update refactoring plan with completion status | 2025-11-05 | a446feb | ✅ |
 
 ---
 
