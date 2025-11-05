@@ -1,9 +1,17 @@
-Here we will share and organize our findings and data from [#483](https://github.com/ct-Open-Source/tuya-convert/issues/483)
+# PSK Identity 02 Protocol
 
-### Please help edit this document!
-Much of this was bulk copy-pasted and needs to be transformed into a useful form
+**Last Updated:** 2025-11-05
+**Status:** 🔄 Research In Progress
+**Implementation:** `scripts/psk-frontend.py`
+**Related:** [Research Procedures](PSK-Research-Procedures.md) | [Affected Devices](PSK-Identity-02-Affected-Devices.md)
 
-# Does output in your smarthack-psk.log look like this?:
+## Overview
+
+This document consolidates community research into the PSK Identity 02 protocol used by newer Tuya devices. This protocol prevents OTA flashing via tuya-convert.
+
+**Original research discussion:** [Issue #483](https://github.com/ct-Open-Source/tuya-convert/issues/483)
+
+## Does output in your smarthack-psk.log look like this?
 ```
 new client on port 443 from 10.42.42.25:3694
 ID: 0242416f68626d6436614739314946523126e9b5b5bdabbb170482e008c373d879b5d1540ec094d09bb7d53fa3fc9645df
@@ -39,7 +47,24 @@ It may be that the `pskKey` is totally random and only stored on Tuya servers an
 - What is with pskKey being 37 characters long? And why does it consist of a-zA-Z0-9 (like base64 but without '+' and '/')
   - If it's base62, then this would be a (16+12) 28-byte value, which are 224 bits. Maybe it's a SHA-224 hash?
 - How can we encourage people to check back in this section for things to help with?
-  - I would 1) suggest creating a discussion thread than is pinned, much like #483 was and posting any useful information that comes out of it here. 2) rather than pin issue #483, it would be better to pin a link directly to this wiki.  Maybe create a new issue that is closed/locked that only contains a link to this wiki if pinning the wiki itself isn't possible. 
+  - I would 1) suggest creating a discussion thread than is pinned, much like #483 was and posting any useful information that comes out of it here. 2) rather than pin issue #483, it would be better to pin a link directly to this wiki.  Maybe create a new issue that is closed/locked that only contains a link to this wiki if pinning the wiki itself isn't possible.
+
+# Implementation Details
+
+The PSK Identity 02 protocol is implemented in tuya-convert:
+
+**Code Reference:** `scripts/psk-frontend.py`
+- **Line 12:** Identity prefix constant: `IDENTITY_PREFIX = b"BAohbmd6aG91IFR1"`
+- **Lines 26-36:** `gen_psk()` function - PSK generation algorithm
+- **Lines 48-49:** Hint value used in PSK calculation
+- **Lines 61-66:** TLS-PSK setup with cipher suite `PSK-AES128-CBC-SHA256`
+
+**Key Technical Details from Code:**
+- PSK Identity format: `\x02` + prefix + SHA256(gwId)
+- Cipher suite: `PSK-AES128-CBC-SHA256`
+- PSK derivation: AES-CBC with key=MD5(hint[-16:]), IV=MD5(identity)
+
+See the implementation for full algorithm details.
 
 # Findings (and comments that need to be edited into findings)
 - firmware ESP8266 RTOS SDK version did not change, but the hash and build time did
@@ -129,304 +154,34 @@ It may be that the `pskKey` is totally random and only stored on Tuya servers an
     - If it's base62, then this would be a (2*8) 24-byte value, which are 192 bits. Maybe it's an AES key?
   - Does anybody have an idea, why the length of the pskKey is 37? That sounds rather random.
 
-## Procedures
+## Research Procedures
 
-### Decrypting network captures with known PSK
+Detailed procedures for capturing and analyzing PSK data have been moved to a dedicated page:
 
-```
-tshark -o "ssl.psk:3ce2b65bc30c7d91bf2e50884a49f6ddc77a8c44b991a1120b298ab846e97704" -z follow,ssl,ascii,9 -r gosund-upgrade.pcap -Y null
-```
-This assumes you:
-- want to look at stream number 9
-- are reading gosund-upgrade.pcap, found below as #34
-- will replace 3ce2b65bc30c7d91bf2e50884a49f6ddc77a8c44b991a1120b298ab846e97704 with the actual psk if you want to look at a different pcap or stream using a different hint
-  - see psk-frontend.py for how to calculate psk when looking at streams using identity 01
+**👉 [PSK Research Procedures](PSK-Research-Procedures.md)**
 
-### Creating network captures and firmware backups
-
-1. Install `create_ap`
-```
-git clone https://github.com/oblique/create_ap
-cd create_ap
-sudo make install
-cd ..
-```
-2. Setup a pass-through AP (assuming your interface is `wlan0`)
-```
-sudo create_ap wlan0 wlan0 MyAccessPoint MyPassPhrase
-```
-3. Start recording
-```
-tcpdump -i wlan0 -w capture.pcap
-```
-4. Connect your phone to `MyAccessPoint` (or whatever you decide to call it)
-5. Use the app (SmartLife or vendor branded app) to pair the device
-6. Wait for registration to complete
-7. Disconnect the device
-8. Go back to `tcpdump` and press `Ctrl` + `C`
-9. Disassemble the device and connect to the serial port of the ESP
-10. Download the firmware using [`esptool`](https://github.com/espressif/esptool)
-```
-esptool.py read_flash 0 0x100000 firmware.bin
-```
-11. Upload both `capture.pcap` and `firmware.bin`
-
-#### Experiment:
-
-The question here is how are devices with old firmware being integrated into Tuya's newer security scheme, which can help us understand how these new PSKs are created.
-
-- It may be when a device is first updated through the app, that the new randomly generated PSK is linked to the device MAC (or other device identifier), and that same PSK is issued again after downgrading and updating
-  - we could potentially obtain the PSK by faking the API call to the cloud, however this strategy would likely be patched against quickly
-- Or a random PSK is generated each time
-  - this would be bad
-
-##### Requirements:
-
-- Tuya device with
-  - old firmware that works with TuyaConvert, or
-  - a converted device with the original backup for that device (MAC address **must** match)
-- firmware upgrade available for that device model in the Tuya app
-  - Confirmed that it is possible to get the new PSK firmware through the app, but not guaranteed to be there for all devices
-  - Teckin SB50 firmware was upgraded through Tuya app to new PSK firmware
-  - Powertech SL225X sold with new PSK firmware, but no firmware update available in Tuya app for SL225x devices with old firmware
-- ability to open the device and serial flash it
-
-##### Steps:
-
-1) take a device with pre-patched Tuya firmware and back it up
-2) step up network capture via WireShark or tcpdump
-3) register the device to the app and get the updated patched firmware
-4) backup the new firmware to determine the new PSK
-5) flash the device back to the pre-patched firmware
-6) register the device again to the Tuya app to get the patched firmware
-7) backup the new firmware, extract the PSK and determine if it matches the PSK from step 3)
-8) share your findings here!
-
-##### Issues:
-Several attempts have been made to follow the steps above (see files 10 and 34 in the Firmware table above). It seems that devices which ship with PSK ID 01 firmware and then are updated to firmware which uses PSK ID 02, do not store the pskKey at 0xfb000 as expected. So this experiment is stalled until we can find where pskKey is being stored on these devices, if at all. It is not found in the same 37 character base64-ish format.
+This includes:
+- Decrypting network captures with known PSK
+- Creating network captures and firmware backups
+- Step-by-step experimental procedures
+- Requirements and known issues
+- Tools and setup instructions
 
 # Data
 
 ## Known Affected Devices
-- AIMASON BSD34 Smart WLAN Plug (4 Pack, Amazon - March 2021)
-- AISIRER WiFi Smart Bulb 10W RGBCW (4 pack, Amazon - December 2020)
-- Aoycocr U2S (4 pack, Amazon - December 03, 2020)
-- Aoycocr U3S (4 pack, Amazon - October 13, 2020)
-- Aoycocr X5P Ordered from (4 pack Amazon US November 23, 2020, FCC ID 2AKBP-X5)
-- Aoycocr X10S Ordered from Amazon April 21, 2020 (FCC ID 2AKBP-X10S)
-- Amico Smart LED Recessed Lighting ‎DC08-DR6-12W120-CCT+W5 (August 2023)
-- Amzdest C168 Outdoor Plug (Amazon 1 OCT 2020)
-- AL Above Lights 810lm
-- Anko HEGSM40 Fan (Kmart December 2020)
-- AOFO Smart Power Strip (ZLD-44EU-W)
-- Arlec GLD060HA lamp
-- Arlec GLD064HA E14 Bulb (November 2020)
-- Arlec GLD120HA (Bunnings September 2020)
-- Arlec GLD112HA (Bunnings May 2021)
-- Arlec GLD081HA (Bunnings October 2020)
-- Arlec PC190HA
-- Arlec PC389HA
-- Arlec PC399HA
-- AHRise AHR-083 Power Strip
-- AHRise AHR-085 Power Strip (Amazon, Oct 24 2020)
-- Aubees smart plug 10-240V european plug. wireless version 2.4 GHz
-- Avatar Mini Smart Socket AWP14H (4 pack, Amazon - October 16, 2020) - note: board is marked HYS-U1S-SOCKET-V1.3 2018-09-21.
-- AWOW EU3S smart socket
-- Avatto NAS-WR01W 10 Amps / 2300 Watt smart socket
-- Avatto NAS-WR01W 16 Amps / 3680 Watt smart socket
-- Bearware WDP 303899 / 20200422WZ001 (/20190809WZ001 is working!) (Amazon, Nov. 17 2020)
-- BAC-002ALW (unbranded) fan coil thermostat (H33711B-2) (Aliexpress, Oct 06 2020)
-- Bakibo TB95
-- Bakibo TP22Y
-- BENEXMART Wifi Tuya WiFi Roller Shade Driver 
-- BHT-002-GALW (Decdeal, Moes, MoesGo, etc.) room thermostat (ordered Oct 15, 2020 over Amazon - Moes Go)
-- BHT-002GBLW room thermostat (ordered Sept 16, 2020)
-- BHT-3000GBLW room thermostat (ordered Sept 28, 2020)
-- Blitzwolf BW-LT11
-- Blitzwolf BW-LT20
-- Blitzwolf BW-LT29
-- Blitzwolf BW-SHP8
-- Blitzwolf BW-SHP11 (ordered via banggood 5th nov, 2020)
-- BNETA IoT Smart WiFi LED Bulb+ (IO-WIFI60-E27P)
-- BNETA IoT Smart WiFi Plug WITH POWER METER IO-WiFi-PlugSA (ordered via Takealot oct, 2022)
-- BN-Link BNC-60 (ordered Amazon Sept 6, 2020)
-- BN-Link Smart Wall Socket KS-604S (w/ USB, Amazon purchase April 2021)
-- Brennenstuhl Ecolor 3AC (ordered at Amazon NL on Nov 21, 2022)
-- BSD33 smart socket (ordered at Aliexpress on Dec 21, 2020)
-- BSD34 smart socket
-- [Calex Multi Color Floor Lamp](https://www.calex.eu/en/products/product/CALEX-SMARTVLOERLAMP/) 
-- [Calex Smart RGB Reflector](https://www.calex.eu/en/product/LEDREFGU10-5W-2200-4000SMD-RGBSMART/)
-- Connect SmartHome CCT Downlight
-- Deltaco SH-LE27W (Post-ESP8266: ESP8285 TYWE2L)
-- Deltaco SH-LE27RGB (More recent units (at least since 2020 summer?) have new PSK. ESP8285 on Tuya TYWE2L)
-- Deltaco SH-LFE27G125 G125 golden globe with CCT
-- Deltaco SH-OP01
-- Deltaco SH-P01
-- Deltaco SH-P01E
-- Deltaco SH-LGU10W
-- [DENVER SHP-100](https://denver-electronics.com/products/smart-home-security/smart-plugs/denver-shp-100/c-1024/c-1292/p-3820) Smart home power plug
-- [DENVER PLO-109](https://denver.eu/products/smart-home-security/smart-plugs/denver-plo-109/c-1024/c-1292/p-4135) Smart home power plug
-- DETA Quad Smart Switch (6904HA)
-- DETA Smart Downlight (DET902HA)
-- DETA Triple Smart Switch
-- Dogain E12 (packaging says GDT-smart bulb Q5-4) (Amazon Nov 20, 2020)
-- Eachen WiFi-IR Universal Remote (SANT-IR-01)
-- eLinkSmart BSD29 (packaging says Smart Plug eLinkSmart 16A - Amazon Nov 20, 2020)
-- EKAZA EKNX-T005 (same product as NX-SM400) (Mercado Livre / Nova Digital - Jan 2021 2 pack)
-- Etersky WF-CS01 Curtain Switch
-- Etersky Wifi Smart Bulb (LDS-WF-A60-9W-E27-RGB) (Amazon Dec 2020, 2 pack)
-- Esicoo Wifi Smart Plug (US package listes device model is 'YX-WS01', Amazon US May 2021, 4 pack) Suspect RelTek IC Not ESP8266 IC based
-- FCMILA Smart Bulb RGBW
-- Feit Smart Wifi Bulb
-- Feit OM100/RGBW/CA/AG (fccid: SYW-A21RGBWAGT2R - non R versions seem to be unaffected)
-- Feit OM100/RGBW/CA/AG(C) (Amazon purchase in Oct 2021, `TYWE3L` module, OS SDK: `2.1.1(317e50f)`, Tuya SDK: `Apr 13 2020 10:28:31`, firmware info name: `oem_esp_light_v1_tuya version:1.1.1`, FCC ID `SYW-A12RGBWAGT2R`)
-- Feit Smart Dimmer
-- Feit Smart Plug (SYW-PLUGWIFIG2)
-- Fitop Smart Bulb E27
-- Freecube Smart Bulb E14 5W (amazon.co.uk Dec 2020)
-- GD.Home LED Floor Lamp (Anten, Amazon Jan 2021)
-- Geeni Prisma 10W 1050lm RGBCCT Bulb 
-  - 17 Dec 20 - Latest firmware for GN-BW94-999 is 1.0.3.  Unable to use latest Tuya-Convert from development branch - #54277bcf.  Bulb connects to vtrust AP but that's it.  Nothing in the logs of any use).
-- Girier 16A Power Monitoring Plug (JR-PM01)
-- Globe Smart Ambient Light (Amazon May 2022)
-- Globe Smart Bulb [3.0] (A19, E26 Medium Base, RGB, 2000k - 5000k, 60W, 800 lumens. From Costco Canada)
-- GoKlug WIFI Light Switch (Amazon, Jan 2021, GoKlug logo on front), but can be opened & flashed directly
-- Gosund 800l bulb
-- Gosund EP2 (2500W, sucessor of SP111 Plug - now glued and soldered, ESP8285. Amazon, Oct 2020)
-- Gosund SP 1 (new PSK: Amazon, Nov. 2020, 4 Pack)
-- Gosund SP 112
-- Gosund SW 1 (1-way switch; new PSK: Amazon, Dec. 2020, 4 pack)
-- Gosund SW2 1-way Dimmer Smart Switch
-- Gosund SW6 3-way Smart Switch (ESP8285-based as of Amazon Dec 2020 purchase)
-- Gosund WB4 bulb
-- Gosund WB5 bulb
-- Gosund WP2 socket (new PSK: Amazon 2021-06-10 (2-pack, ASIN B07F58N32V); ESP8266EX; mfg. date on device: 02/2021; prod_idx 34751287)
-- Gosund WP3 socket (old PSK: Amazon 2020-08-26; new PSK: Amazon 2020-10-20)
-- Gosund WP5 socket (Amazon, October 8, 2020)
-- Gosund WP6 socket (Amazon, December 31, 2020)
-- Halonix Prime Prizm 12W RGB Bulb(Amazon.in, October 28, 2020)
-- Hama 10W 1050lm RGBW E27 Bulb (Amazon, October 2020)
-- Hama Outdoor WiFi socket 176570
-- HBN Outdoor Smart WiFi Plug U151T (Amazon, December 2020)
-- Hiking DDS238-2 Wifi - Smart Meter with relay
-- Hombli Smart Socket power plug - HBPP-0204
-- iiglo Wi-Fi Smart Power Strip – IISMART0003 (Komplett, November 2020, SKU:1174244) (Shows up with ESP_xxxxxx in the DHCP lease, returns PSK 02)
-- Jasco Enbrighten Smart Plug, model WFD4105E
-- Jinvoo SM-AW713 Valve
-- Jinvoo SM-PW713
-- KHSUIN A19 E26 RGBCW 7w 800lm bulb (Amazon, June 2020)
-- Klas Remo SWA11
-- Kogan KASMCDSKTLA 1.7L Smart Kettle
-- Kogan SmarterHome Smart Plug with Energy Meter [KASPEMHA, KASPEMHUSBA] (Kogan, June 2020, but by Oct 2021, KASPEMHA now WB2S, incompatible with tasmota)
-- Kogan KAB22RGBC1A Smart Bulb (B22) 10W 806LM
-- LangPlus+ 40W 3500LM Smart Outdoor Floodlight (Amazon, 16 APR 2021)
-- Legelight Smart Light Bulb (2pack - 7W 650LM - E26)
-- Lenovo SE-241EB Smart Bulb (Mfg Date: 20/9/9)
-- [Lexi Lighting APT01](https://www.lexilighting.com.au/products/wifi-tuya-app-control-adaptor)
-- LOHAS E14 bulb
-- LOHAS Candelabra LED Bulb E12 Base
-- LOHAS RGBCW GU10 Bulb
-- Lonsonho X801A-L Light Switch (No neutral)
-- Loratap sc500w curtain switch
-- Loratap SC511WSC Curtain switch module with remote
-- [LSC Filament E27 Dimmable Bulb](https://www.action.com/nl-nl/p/lsc-smart-connect-slimme-filament-ledlamp2/)
-- [LSC Filament C35/E14 Dimmable Bulb](https://www.action.com/nl-nl/p/lsc-smart-connect-slimme-filament-ledlamp3/)
-- [LSC Garden Spots](https://shop.action.com/nl-nl/p/8712879154488/lsc-smart-connect-tuinspots/)
-- Lumary Downlights 18W (Amazon ES, 15 Apr 2022) comes with WB2S, incompatible with tasmota)
-- Luminea NX-4491-675 (from Pearl)
-- Luminea ZX-2820-675 Smartmeter Plug (from Pearl)
-- LUMIMAN ‎LM530-4P-US
-- ‎LUMIMAN LM650-2P-CA
-- LVWIT A70-3 WIFI DIM+CCT+RGB 12W E27 X-Y X0014O0801 LED Bulb 4pack (Amazon, December 2020)
-- Maxcio YX-L01C-E14
-- Maxcio YX-L01C-E27
-- Merkury MI-BW320-999W Light bulb
-- Merkury MI-BW944-999W 11W 1050LM Light Bulb
-- Merkury MI-EW003-999W LED Light strip
-- Merkury MI-EW010-999W LED Light strip
-- Merkury MI-OW101 (DR-1703) Outdoor smart plug
-- Minoston MP22W Outdoor Plug
-- Milfra Smart Module TB41
-- Mirabella Genio 5W 450lm Candle RGBCCT Bulb (E14) (Kmart, May 2021)
-- Mirabella Genio 9W 800lm RGBW Bulb (B22) - (I002608, Coles 10 Dec 2020; Note: "Sale" (AU) units bought from Coles 20 Sep 2020 and KMart approx Oct 2020 both PSK 01)
-- Mirabella Genio 9W LED Wi-Fi Dimmable Downlight - I002741
-- Mirabella Genio Christmas Wi-Fi 200 LED Colour Wheel Icicle Lights (Big W, 14 Nov 2020)
-- Mirabella Genio 5W LED Wi-Fi Dimmable Downlight - I002943
-- Mirabella Genio Smart IR Controller (Kmart, 18 Dec 2020)
-- MoesHouse Smart Downlight
-- Moes WS-US1-W 1 Gang
-- Moes Wi-Fi Smart Wall Socket KS-604S (w/ USB, Amazon purchase April 2021)
-- NEO Coolcam NAS-WR01W
-- Nedis Wi-Fi Smart Plug WIFIP110FWT
-- Nedis Wi-Fi Smart Plug WIFIP130FWT
-- Nedis Wi-Fi Smart Outdoor Plug WIFIPO120FWT (November 25 2020)
-- Nedis Wi-Fi Smart Bulb WIFILT10GDA60 (December 2020)
-- Nedis Wi-Fi Smart Bulb WIFILW13WT (May 2021)
-- Nedis Wi-Fi Smart Extension Socket WIFIP311FWT (Dec 2021)
-- Nedis Wi-Fi Smoke Detector WIFIDS10WT (Dec 2021)
-- Nedis Wi-Fi Remote Control WIFIRC10CBK (Sep 2024)
-- Nexxt Home Smart Wi-FI LED NHB-W110 (June 9, 2023)
-- NOUS Smart WIFI Socket A1 "NOUS A1" (4 pack, Amazon.de, Feb 2022)
-- Novostella 20w Smart LED Floodlight
-- Novostella 13W Smart LED Light Bulbs RGBCW (Model: `UT55509`, Amazon purchase in Oct 2021, `TYWE3L` module, OS SDK: `2.1.1(317e50f)`, Tuya SDK: `Apr 9 2020 04:37:24`, firmware info name: `oem_esp_light version:1.6.1`)
-- NX-SM112
-- NX-SM400
-- OHLUX Smart WiFi LED (ASIN B08CL2CKW3, OS SDK ver: 2.0.0(29f7e05) compiled @ Sep 30 2019 11:19:12)
-- OHLUX 40W 4000LM Smart Outdoor Flood Lights (ASIN B083TZFB29)
-- Olafus 10W WiFi LED (2 pack, Amazon.it, Mar 2022, Model: E10WIFI, SKU LA-E10-78FDRGBW-EU02)
-- Polux WI-FI SMART LED, 400lm, 5,5W, GU10 (GU10SMDWWCW+RBG) (Model: MK-010011001067, Series: SE2006MK-1)
-- Polux WI-FI SMART LED, 400lm, 5,5W, E12 (E12SMDWWCW+RBG) (Model: MK-010052019005, Series: SE2004MK-1)
-- Polux WI-FI SMART LED, 1055lm, 13W, E27 (E27SMDWWCW+RBG) (Model: MK-010112048001, Series: SE2006MK-1)
-- Polux Wi-Fi SMART LED Strip RGB+NW 4000K 2m, 540lm, 6,5W, (Model: CL-5050RGB2835WWaaaHYbb-Wcc-WiFi, Series: SE20006CL-1)
-- Powertech SL225X (firmware V3.3.16 TC compatible, V3.3.30 new PSK)
-- Prime WiFi SmartOutlet Outdoor (Date Code: 08/20, from Costco.ca)
-- QS-WIFI-S03 Module Switch
-- SANA SW02-02 Smart Switch
-- SHENZHEN LONG SI PU TECHNOLOGY LIMITED FCCID: 2AV9Z-LSPA6, tuya product: jorlvalcdf5lz6qa, [FCCID](https://fccid.io/2AV9Z-LSPA6)
-- Sinotimer TM608 Smart Timer & Meter (from 09-2021)
-- SmartPoint Smart WIFI Universal Remote Control SPCNTRL-WM (Walmart)
-- SMRTLite (Costco) LED Panel Light DS18901
-- Spectrum SMART GLS LED lamp, 5W COG E-27 Wi-Fi CCT DIMM Milky
-- Spectrum SMART 2 LED lamp, 5W E-14 Wi-Fi CCT DIMM (WOJ14414, 1322050)
-- Stirling Black Premium Fan Tower with Wi-Fi (TF4601TR-S) (Aldi)
-- Stitch Wireless Smart Power Strip (Monoprice.com, Oct 26 2020, P/N 34082)
-- Sunco G25 RGBW Smart Bulb
-- Sunco PAR38 WIFI LED SMART (PAR38_S-13W-27K_5K-2PK)
-- SRL Glass Wallplate Touch Switches (all gang combos) https://srltech.com.au/portfolio_page/one-gang-series/
-- Swisstone SH 320 (ordered from condrad.cz)
-- TCP Smart 13A Plug (WISSINWUK)
-- Teckin SB50 (firmware V1.61 new PSK, was previously TC compatible until firmware update through Tuya app).
-- Teckin SB53 (some of them, even BNIB never updated)
-- Teckin SS31 Outdoor smart outlet
-- Teckin SS42 Outdoor smart outlet
-- Teckin SR40 Wi-Fi Smart Wall Socket (Amazon Jan 2021)
-- Tellur TLL331031 (emag.ro, Jan 2021)
-- TopGreener TGWF15RM smart outlet with Energy Monitor  (4 pack, purchased Amazon Nov 2020)
-- TopGreener TGWF115PQM [4-Pack, Amazon Nov 2024]
-- Treatlife A19 8W 650lm RGBCCT Bulb
-- Treatlife Ceiling Fan & Light Dimmer Switch DS03
-- TreatLife Smart Dimmer Switch DS01C
-- Treatlife Smart Dimmer Switch DS02S
-- TreatLife Smart Plug-in Dimmer DP10
-- TreatLife SS01S (4 pack, purchased on Amazon Nov 2020)
-- Treatlife SS01 3-Way Switch
-- Treatlife SS02S Single Pole Switch
-- UCOMEN Outdoor Sockets PA-GEBA-01SWP2
-- UFO-R1 / SRW-001 Smart Wifi Infrared Controller (tested version is labeled by MOES)
-- Ultra Link UL-P01W (Takealot, 26 November 2020)
-- Veargree Smart Timer ATMS1601
-- WiFi Smart Power Strip 4 AC - SA-P402A (Zeoota)
-- Wipro Garnet 9W RGBCCT Bulb
-- Wipro Smart Extension DSE2150
-- Wipro Smart Plug 16A
-- Wofea Smart Garage Controller WG-088
-- Woox r5024 (pack of 4 bought on ibood in june 2020)
-- Zebronics ZEB-SP116
-- Zemismart 4 inch 10W Wifi RGBW
-- Zemismart 6 inch 14W WiFi RGBCW
-- Zemismart Curtain Motor ZM79E-DT WiFi [here](https://www.zemismart.com/products/smart-curtain-customized-electric-curtain-motor-with-tracket-rf-remote-broadlink-control)
-- Zemismart WiFi Roller Shutter [YH002](https://www.zemismart.com/products/zemismart-tuya-wifi-roller-shade-driver-diy-roller-yh002)
-- Zeoota ZLD-44EU-W - WiFi Smart Power Strip
+
+A comprehensive list of devices confirmed to use PSK Identity 02 has been moved to a dedicated page:
+
+**👉 [PSK Identity 02 Affected Devices](PSK-Identity-02-Affected-Devices.md)**
+
+This page includes:
+- Alphabetical device list with purchase dates and models
+- Identification methods (smarthack-psk.log error patterns)
+- Device purchase timeline (pre/post September 2019)
+- Community-contributed test results
+
+**Quick check:** If your `smarthack-psk.log` shows `ID: 02...` with a `DECRYPTION_FAILED_OR_BAD_RECORD_MAC` error, see the [affected devices list](PSK-Identity-02-Affected-Devices.md).
 
 ## Firmware
 🔢 | pcap | SDK_ver_A | SDK_ver_B | mac | mac_addr | prod_idx | auz_key | pskKey
