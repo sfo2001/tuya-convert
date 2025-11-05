@@ -59,7 +59,11 @@ Starting with `install_prereq.sh`, Python dependencies (defined in `requirements
 If you need to manually activate the virtual environment (e.g., for debugging):
     # source ./activate_venv.sh
 
-This change addresses [upstream issue #1159](https://github.com/ct-Open-Source/tuya-convert/issues/1159).
+This change addresses [upstream issue #1159](https://github.com/ct-Open-Source/tuya-convert/issues/1159) and [upstream issue #1167](https://github.com/ct-Open-Source/tuya-convert/issues/1167).
+
+**Virtual Environment and sudo Compatibility:**
+
+Python scripts launched with `sudo` in screen sessions now correctly use the virtual environment by explicitly setting the PATH via the `env` command. This ensures that packages installed in the virtual environment (like `sslpsk3`) are available even when scripts run with elevated privileges.
 
 **Python 3.8+ Requirement:**
 
