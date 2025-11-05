@@ -3,9 +3,24 @@
 **Project:** tuya-convert
 **Repository:** https://github.com/sfo2001/tuya-convert
 **Wiki Repository:** https://github.com/sfo2001/tuya-convert.wiki
+**Working Directory:** `docs/` (wiki migrated to main repository)
 **Date Created:** 2025-11-04
 **Last Updated:** 2025-11-05
-**Status:** EXECUTION PHASE - Phase 0 Complete, Ready for Phase 1
+**Status:** EXECUTION PHASE - Phase 1 In Progress
+
+---
+
+## ⚠️ Important: Working Directory
+
+**All wiki restructuring work is performed in the `docs/` directory of the main repository.**
+
+- **Migration Date:** 2025-11-04 (commit `256a89b`)
+- **Reason:** Better version control and documentation-code alignment
+- **Source:** GitHub Wiki (https://github.com/sfo2001/tuya-convert/wiki)
+- **Backup:** `wiki-backup-20251105/` (preserved for reference)
+- **Current Status:** Wiki files migrated to `docs/`, restructuring in progress
+
+All file paths in this plan refer to files in the `docs/` directory unless otherwise specified.
 
 ---
 
