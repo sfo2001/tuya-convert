@@ -3,7 +3,7 @@
 **Phase Status:** 🔄 IN PROGRESS
 **Start Date:** 2025-11-05
 **End Date:** -
-**Progress:** 2/7 steps (29%)
+**Progress:** 3/7 steps (43%)
 
 [← Back to Overview](WIKI_RESTRUCTURING_PLAN.md) | [← Previous Phase](WIKI_PHASE_3_INCOMPLETE_PAGES.md) | [Next Phase →](WIKI_PHASE_5_APPLY_TEMPLATES.md)
 
@@ -31,7 +31,7 @@ These pages fill critical gaps in the documentation.
 |------|------|--------|-----------|
 | 4.1 | Installation.md | ✅ Complete | 2 hours |
 | 4.2 | Quick-Start-Guide.md | ✅ Complete | 2 hours |
-| 4.3 | Using-Docker.md | ⏳ Pending | 1.5 hours |
+| 4.3 | Using-Docker.md | ✅ Complete | 1.5 hours |
 | 4.4 | System-Architecture.md | ⏳ Pending | 3 hours |
 | 4.5 | Protocol-Overview.md | ⏳ Pending | 1 hour |
 | 4.6 | API-Reference.md | ⏳ Pending | 3 hours |
@@ -114,15 +114,19 @@ These pages fill critical gaps in the documentation.
 
 ---
 
-### Step 4.3: Create Docker Setup Guide ⏳
+### Step 4.3: Create Docker Setup Guide ✅
+
+**Status:** COMPLETE
 
 **Objective:** Extract and expand Docker content from README
 
 **Source Content:**
-- README.md lines 79-105
-- `docker-compose.yml`
-- `.env-template`
-- `Dockerfile`
+- README.md lines 79-105 (Docker section)
+- `docker-compose.yml` - Service configuration
+- `.env-template` - Environment variables
+- `Dockerfile` - Image build instructions
+- `docker/bin/tuya-start` - Container entrypoint
+- `docker/bin/config-tuya.sh` - Configuration script
 
 **Content to Include:**
 - Why use Docker
@@ -136,6 +140,23 @@ These pages fill critical gaps in the documentation.
 **File:** `docs/Using-Docker.md`
 **Template:** Guide-Template.md
 **Commit:** "docs(wiki): create Docker setup guide"
+
+**Validation:**
+- [x] README Docker content extracted and expanded (lines 79-105)
+- [x] docker-compose.yml configuration explained
+- [x] .env-template variables documented with examples
+- [x] Dockerfile build process explained
+- [x] Code references included (Dockerfile lines 1, 3, 5, 13; docker-compose.yml lines 5, 6, 8-10, 12)
+- [x] Cross-references to related pages added
+- [x] Guide template properly applied
+- [x] Step-by-step setup instructions (7 steps)
+- [x] Docker command reference section
+- [x] Advanced configuration (custom firmware, network, environment)
+- [x] Professional formatting throughout
+- [x] Comprehensive troubleshooting section (8 scenarios)
+- [x] Docker vs Native comparison table
+- [x] FAQ section (6 questions)
+- [x] Maintenance and cleanup instructions
 
 ---
 
@@ -252,7 +273,7 @@ For each new page:
 |------|---------------|------|-----|-----------|
 | 4.1 | docs(wiki): create Installation guide | 2025-11-05 | e781e69 | ✅ |
 | 4.2 | docs(wiki): create Quick Start Guide | 2025-11-05 | 3e63203 | ✅ |
-| 4.3 | [pending] | - | - | ⏳ |
+| 4.3 | docs(wiki): create Docker setup guide | 2025-11-05 | [pending] | ✅ |
 | 4.4 | [pending] | - | - | ⏳ |
 | 4.5 | [pending] | - | - | ⏳ |
 | 4.6 | [pending] | - | - | ⏳ |
@@ -283,4 +304,4 @@ For each new page:
 **Phase 4: In Progress** 🔄
 **Last Updated:** 2025-11-05
 **Estimated Duration:** 14 hours
-**Steps Complete:** 4.1 (Installation.md), 4.2 (Quick-Start-Guide.md)
+**Steps Complete:** 4.1 (Installation.md), 4.2 (Quick-Start-Guide.md), 4.3 (Using-Docker.md)
