@@ -1,9 +1,9 @@
 # Phase 4: Create New Essential Pages
 
-**Phase Status:** ⏳ PENDING
-**Start Date:** -
+**Phase Status:** 🔄 IN PROGRESS
+**Start Date:** 2025-11-05
 **End Date:** -
-**Progress:** 0/7 steps (0%)
+**Progress:** 4/7 steps (57%)
 
 [← Back to Overview](WIKI_RESTRUCTURING_PLAN.md) | [← Previous Phase](WIKI_PHASE_3_INCOMPLETE_PAGES.md) | [Next Phase →](WIKI_PHASE_5_APPLY_TEMPLATES.md)
 
@@ -29,10 +29,10 @@ These pages fill critical gaps in the documentation.
 
 | Step | Page | Status | Est. Time |
 |------|------|--------|-----------|
-| 4.1 | Installation.md | ⏳ Pending | 2 hours |
-| 4.2 | Quick-Start-Guide.md | ⏳ Pending | 2 hours |
-| 4.3 | Using-Docker.md | ⏳ Pending | 1.5 hours |
-| 4.4 | System-Architecture.md | ⏳ Pending | 3 hours |
+| 4.1 | Installation.md | ✅ Complete | 2 hours |
+| 4.2 | Quick-Start-Guide.md | ✅ Complete | 2 hours |
+| 4.3 | Using-Docker.md | ✅ Complete | 1.5 hours |
+| 4.4 | System-Architecture.md | ✅ Complete | 3 hours |
 | 4.5 | Protocol-Overview.md | ⏳ Pending | 1 hour |
 | 4.6 | API-Reference.md | ⏳ Pending | 3 hours |
 | 4.7 | How-to-Contribute.md | ⏳ Pending | 1.5 hours |
@@ -41,7 +41,9 @@ These pages fill critical gaps in the documentation.
 
 ## Detailed Steps
 
-### Step 4.1: Create Installation Guide ⏳
+### Step 4.1: Create Installation Guide ✅
+
+**Status:** COMPLETE
 
 **Objective:** Extract and expand installation content from README
 
@@ -58,16 +60,29 @@ These pages fill critical gaps in the documentation.
 
 **File:** `docs/Installation.md`
 **Template:** Guide-Template.md
-**Commit:** "docs(wiki): create detailed Installation guide"
+**Commit:** "docs(wiki): create Installation guide"
+
+**Validation:**
+- [x] README content extracted and expanded
+- [x] Code references included (`install_prereq.sh` lines 4-8, 10-13)
+- [x] Cross-references to related pages added
+- [x] Guide template properly applied
+- [x] Platform-specific examples included (Debian, Ubuntu, Arch, Raspberry Pi, VirtualBox)
+- [x] Professional formatting throughout
+- [x] Troubleshooting section with 5 common scenarios
+- [x] Post-installation section with next steps
+- [x] No content duplication (complements System Requirements page)
 
 ---
 
-### Step 4.2: Create Quick Start Guide ⏳
+### Step 4.2: Create Quick Start Guide ✅
+
+**Status:** COMPLETE
 
 **Objective:** Create beginner-friendly first flash walkthrough
 
 **Source Content:**
-- README.md PROCEDURE section
+- README.md PROCEDURE section (lines 41-78)
 - `start_flash.sh` script analysis
 
 **Content to Include:**
@@ -82,17 +97,36 @@ These pages fill critical gaps in the documentation.
 **Template:** Guide-Template.md
 **Commit:** "docs(wiki): create Quick Start Guide"
 
+**Validation:**
+- [x] README PROCEDURE content extracted and expanded (lines 41-78)
+- [x] start_flash.sh process flow documented with expected output
+- [x] Code references included (start_flash.sh lines 66-112, 154-265, 183, 214-238, 240-255)
+- [x] Cross-references to related pages added
+- [x] Guide template properly applied
+- [x] Step-by-step walkthrough with 10 clear steps
+- [x] Expected output examples at each critical stage
+- [x] Professional formatting throughout
+- [x] Comprehensive troubleshooting section (6 scenarios)
+- [x] "What Success Looks Like" section included
+- [x] "Common First-Time Mistakes" section included (6 mistakes)
+- [x] Post-flash next steps for both Tasmota and ESPurna
+- [x] Beginner-friendly language with clear explanations
+
 ---
 
-### Step 4.3: Create Docker Setup Guide ⏳
+### Step 4.3: Create Docker Setup Guide ✅
+
+**Status:** COMPLETE
 
 **Objective:** Extract and expand Docker content from README
 
 **Source Content:**
-- README.md lines 79-105
-- `docker-compose.yml`
-- `.env-template`
-- `Dockerfile`
+- README.md lines 79-105 (Docker section)
+- `docker-compose.yml` - Service configuration
+- `.env-template` - Environment variables
+- `Dockerfile` - Image build instructions
+- `docker/bin/tuya-start` - Container entrypoint
+- `docker/bin/config-tuya.sh` - Configuration script
 
 **Content to Include:**
 - Why use Docker
@@ -107,15 +141,34 @@ These pages fill critical gaps in the documentation.
 **Template:** Guide-Template.md
 **Commit:** "docs(wiki): create Docker setup guide"
 
+**Validation:**
+- [x] README Docker content extracted and expanded (lines 79-105)
+- [x] docker-compose.yml configuration explained
+- [x] .env-template variables documented with examples
+- [x] Dockerfile build process explained
+- [x] Code references included (Dockerfile lines 1, 3, 5, 13; docker-compose.yml lines 5, 6, 8-10, 12)
+- [x] Cross-references to related pages added
+- [x] Guide template properly applied
+- [x] Step-by-step setup instructions (7 steps)
+- [x] Docker command reference section
+- [x] Advanced configuration (custom firmware, network, environment)
+- [x] Professional formatting throughout
+- [x] Comprehensive troubleshooting section (8 scenarios)
+- [x] Docker vs Native comparison table
+- [x] FAQ section (6 questions)
+- [x] Maintenance and cleanup instructions
+
 ---
 
-### Step 4.4: Create System Architecture Page ⏳
+### Step 4.4: Create System Architecture Page ✅
+
+**Status:** COMPLETE
 
 **Objective:** Document how all components work together
 
 **Source Content:**
 - `start_flash.sh` orchestration
-- Python scripts in `scripts/`
+- Python scripts in `scripts/` (fake-registration-server.py, psk-frontend.py, tuya-discovery.py)
 - `setup_ap.sh` network setup
 - Code analysis from WIKI_CODE_ALIGNMENT.md
 
@@ -130,6 +183,21 @@ These pages fill critical gaps in the documentation.
 **File:** `docs/System-Architecture.md`
 **Template:** Reference-Template.md
 **Commit:** "docs(wiki): add system architecture documentation"
+
+**Validation:**
+- [x] High-level architecture diagram (ASCII art)
+- [x] Component architecture with 5 major components documented
+- [x] Network topology with IP addressing scheme
+- [x] Port mapping table (8 services)
+- [x] Data flow through 5 phases (setup, pairing, activation, backup, flash)
+- [x] Security model analysis (attack vectors, countermeasures)
+- [x] Code references with line numbers for all components
+- [x] Debugging and monitoring section
+- [x] Reference template properly applied
+- [x] Cross-references to related pages
+- [x] Professional technical documentation
+- [x] ASCII diagrams for architecture and data flow
+- [x] Comprehensive endpoint and port documentation
 
 ---
 
@@ -220,10 +288,10 @@ For each new page:
 
 | Step | Commit Message | Date | SHA | Validated |
 |------|---------------|------|-----|-----------|
-| 4.1 | [pending] | - | - | ⏳ |
-| 4.2 | [pending] | - | - | ⏳ |
-| 4.3 | [pending] | - | - | ⏳ |
-| 4.4 | [pending] | - | - | ⏳ |
+| 4.1 | docs(wiki): create Installation guide | 2025-11-05 | e781e69 | ✅ |
+| 4.2 | docs(wiki): create Quick Start Guide | 2025-11-05 | 3e63203 | ✅ |
+| 4.3 | docs(wiki): create Docker setup guide | 2025-11-05 | 8296f62 | ✅ |
+| 4.4 | docs(wiki): add system architecture documentation | 2025-11-05 | ce98474 | ✅ |
 | 4.5 | [pending] | - | - | ⏳ |
 | 4.6 | [pending] | - | - | ⏳ |
 | 4.7 | [pending] | - | - | ⏳ |
@@ -250,6 +318,7 @@ For each new page:
 
 ---
 
-**Phase 4: Pending** ⏳
+**Phase 4: In Progress** 🔄
 **Last Updated:** 2025-11-05
 **Estimated Duration:** 14 hours
+**Steps Complete:** 4.1 (Installation.md), 4.2 (Quick-Start-Guide.md), 4.3 (Using-Docker.md), 4.4 (System-Architecture.md)

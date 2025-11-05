@@ -88,6 +88,8 @@ If tuya-convert fails with PSK ID 02 error:
 
 ## Reference Files
 
+> **Note:** The following files are hosted on the original tuya-convert project repository ([ct-Open-Source/tuya-convert](https://github.com/ct-Open-Source/tuya-convert)) and provided as examples from community contributions. They demonstrate the type of data that is helpful for PSK research.
+
 The following files are examples from community contributions showing what kind of data is helpful:
 
 - [device-info.txt](https://github.com/ct-Open-Source/tuya-convert/files/10252870/device-info.txt) - Device information example
