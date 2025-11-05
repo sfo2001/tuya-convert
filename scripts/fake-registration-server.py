@@ -1,11 +1,26 @@
 #!/usr/bin/env python3
 # encoding: utf-8
 """
-fake-registration-server.py
+Fake Tuya Registration Server
+
+This module implements a fake Tuya cloud registration server used for flashing
+alternative firmware to Tuya-based IoT devices. It intercepts device activation
+and upgrade requests, simulating the official Tuya cloud API endpoints.
+
+The server supports both encrypted (protocol 2.2) and unencrypted (protocol 2.1)
+communication modes, using AES-ECB encryption with a configurable secret key.
+
+Main Features:
+- Device activation and token generation endpoints
+- Firmware upgrade endpoints with MD5/SHA256/HMAC verification
+- Dynamic configuration and timer management
+- Support for both ESP82xx-based devices and others
+
 Created by nano on 2018-11-22.
 Copyright (c) 2018 VTRUST. All rights reserved.
 """
 
+from typing import Dict, Optional, Any, Union
 import tornado.web
 import tornado.locks
 from tornado.options import define, options, parse_command_line
@@ -17,18 +32,73 @@ define("secKey", default="0000000000000000", help="key used for encrypted commun
 
 import os
 import signal
+from types import FrameType
 
-def exit_cleanly(signal, frame):
+def exit_cleanly(signum: int, frame: Optional[FrameType]) -> None:
+	"""
+	Handle SIGINT signal for clean server shutdown.
+
+	Args:
+		signum: Signal number received
+		frame: Current stack frame at the time of signal
+	"""
 	print("Received SIGINT, exiting...")
 	exit(0)
 
 signal.signal(signal.SIGINT, exit_cleanly)
 
 from Cryptodome.Cipher import AES
-pad = lambda s: s + (16 - len(s) % 16) * chr(16 - len(s) % 16)
-unpad = lambda s: s[:-ord(s[len(s) - 1:])]
-encrypt = lambda msg, key: AES.new(key, AES.MODE_ECB).encrypt(pad(msg).encode())
-decrypt = lambda msg, key: unpad(AES.new(key, AES.MODE_ECB).decrypt(msg)).decode()
+
+def pad(s: str) -> str:
+	"""
+	Apply PKCS#7 padding to a string to make it a multiple of 16 bytes.
+
+	Args:
+		s: String to pad
+
+	Returns:
+		Padded string with length as multiple of 16 bytes
+	"""
+	padding_length = 16 - len(s) % 16
+	return s + padding_length * chr(padding_length)
+
+def unpad(s: str) -> str:
+	"""
+	Remove PKCS#7 padding from a string.
+
+	Args:
+		s: Padded string
+
+	Returns:
+		Original unpadded string
+	"""
+	return s[:-ord(s[len(s) - 1:])]
+
+def encrypt(msg: str, key: bytes) -> bytes:
+	"""
+	Encrypt a message using AES-ECB mode with PKCS#7 padding.
+
+	Args:
+		msg: Plain text message to encrypt
+		key: AES encryption key (must be 16 bytes)
+
+	Returns:
+		Encrypted message as bytes
+	"""
+	return AES.new(key, AES.MODE_ECB).encrypt(pad(msg).encode())
+
+def decrypt(msg: bytes, key: bytes) -> str:
+	"""
+	Decrypt a message using AES-ECB mode and remove PKCS#7 padding.
+
+	Args:
+		msg: Encrypted message bytes
+		key: AES decryption key (must be 16 bytes)
+
+	Returns:
+		Decrypted plain text string
+	"""
+	return unpad(AES.new(key, AES.MODE_ECB).decrypt(msg)).decode()
 
 from base64 import b64encode
 import hashlib
@@ -36,19 +106,53 @@ import hmac
 import binascii
 
 import json
-jsonstr = lambda j : json.dumps(j, separators=(',', ':'))
 
-def file_as_bytes(file_name):
+def jsonstr(j: Union[Dict, list, Any]) -> str:
+	"""
+	Convert a Python object to a compact JSON string.
+
+	Args:
+		j: Python object (dict, list, etc.) to serialize
+
+	Returns:
+		Compact JSON string without extra whitespace
+	"""
+	return json.dumps(j, separators=(',', ':'))
+
+def file_as_bytes(file_name: str) -> bytes:
+	"""
+	Read a file and return its contents as bytes.
+
+	Args:
+		file_name: Path to the file to read
+
+	Returns:
+		File contents as bytes
+	"""
 	with open(file_name, 'rb') as file:
 		return file.read()
 
-file_md5 = ""
-file_sha256 = ""
-file_hmac = ""
-file_len = ""
+# Global variables storing firmware file metadata
+# These are calculated once at startup and used for upgrade responses
+file_md5: str = ""  # MD5 hash of the firmware file
+file_sha256: str = ""  # SHA256 hash of the firmware file
+file_hmac: str = ""  # HMAC signature of the SHA256 hash
+file_len: str = ""  # Size of the firmware file in bytes
 
-def get_file_stats(file_name):
-	#Calculate file hashes and size
+def get_file_stats(file_name: str) -> None:
+	"""
+	Calculate and store cryptographic hashes and size of the firmware file.
+
+	This function populates global variables with MD5, SHA256, HMAC, and file size
+	information for the firmware upgrade file. These values are used in upgrade
+	endpoint responses to allow devices to verify firmware integrity.
+
+	Args:
+		file_name: Path to the firmware file to analyze
+
+	Side Effects:
+		Updates global variables: file_md5, file_sha256, file_hmac, file_len
+	"""
 	global file_md5
 	global file_sha256
 	global file_hmac
@@ -60,23 +164,89 @@ def get_file_stats(file_name):
 	file_len = str(os.path.getsize(file_name))
 
 from time import time
-timestamp = lambda : int(time())
+
+def timestamp() -> int:
+	"""
+	Get current Unix timestamp as an integer.
+
+	Returns:
+		Current time as seconds since epoch (January 1, 1970)
+	"""
+	return int(time())
 
 class FilesHandler(tornado.web.StaticFileHandler):
-	def parse_url_path(self, url_path):
+	"""
+	Custom static file handler that serves firmware files with automatic index.html fallback.
+
+	This handler serves files from the ../files/ directory and automatically serves
+	index.html when the URL path is empty or ends with a slash.
+	"""
+
+	def parse_url_path(self, url_path: str) -> str:
+		"""
+		Parse and modify the URL path to add index.html for directory requests.
+
+		Args:
+			url_path: The requested URL path
+
+		Returns:
+			Modified URL path with index.html appended if needed
+		"""
 		if not url_path or url_path.endswith('/'):
 			url_path = url_path + str('index.html')
 		return url_path
 
 class MainHandler(tornado.web.RequestHandler):
-	def get(self):
+	"""
+	Handler for the root endpoint that displays a simple connection confirmation.
+	"""
+
+	def get(self) -> None:
+		"""
+		Handle GET requests to the root endpoint.
+
+		Sends a simple text response confirming connection to the fake server.
+		"""
 		self.write("You are connected to vtrust-flash")
 
 class JSONHandler(tornado.web.RequestHandler):
-	activated_ids = {}
-	def get(self):
+	"""
+	Main request handler for Tuya API endpoints.
+
+	This handler processes all device registration, activation, and firmware upgrade
+	requests. It supports both encrypted (protocol 2.2) and unencrypted (protocol 2.1)
+	communication modes.
+
+	Attributes:
+		activated_ids: Dictionary tracking which gateway IDs have been activated to
+		              determine schema complexity in responses
+	"""
+	activated_ids: Dict[str, bool] = {}
+
+	def get(self) -> None:
+		"""
+		Handle GET requests by delegating to the POST handler.
+
+		Some Tuya devices may send GET requests to endpoints, so we redirect
+		them to use the same logic as POST requests.
+		"""
 		self.post()
-	def reply(self, result=None, encrypted=False):
+
+	def reply(self, result: Optional[Union[Dict, bool, Any]] = None, encrypted: bool = False) -> None:
+		"""
+		Send a JSON response to the device with optional encryption.
+
+		For encrypted responses (protocol 2.2), the result is encrypted with AES and
+		signed with MD5. For unencrypted responses (protocol 2.1), the result is
+		returned in plain JSON.
+
+		Args:
+			result: Response data to send (dict, bool, or None)
+			encrypted: Whether to use encrypted protocol (2.2) or plain (2.1)
+
+		Side Effects:
+			Sends HTTP response with appropriate headers and JSON body
+		"""
 		ts = timestamp()
 		if encrypted:
 			answer = {
@@ -104,7 +274,33 @@ class JSONHandler(tornado.web.RequestHandler):
 		self.set_header('Content-Language', 'zh-CN')
 		self.write(answer)
 		print("reply", answer)
-	def post(self):
+
+	def post(self) -> None:
+		"""
+		Handle POST requests to Tuya API endpoints.
+
+		This method processes all device API requests including:
+		- Token retrieval (s.gw.token.get)
+		- Device activation (.active endpoints)
+		- Firmware upgrade checks and downloads (.upgrade endpoints)
+		- Log submission (.log)
+		- Timer configuration (.timer)
+		- Dynamic configuration (.config.get)
+
+		The method extracts request parameters, attempts to decrypt the payload if
+		encrypted, and routes to the appropriate response handler based on the 'a'
+		(action) parameter.
+
+		Request Parameters:
+			a: API action/endpoint being called
+			et: Encryption type (1 for encrypted, 0 for plain)
+			gwId: Gateway device ID
+
+		Side Effects:
+			- Prints request details and payload to console
+			- Triggers firmware upgrade via mq_pub_15.py after activation
+			- Kills smartconfig process after token retrieval
+		"""
 		uri = str(self.request.uri)
 		a = str(self.get_argument('a', 0))
 		encrypted = str(self.get_argument('et', 0)) == '1'
@@ -231,7 +427,30 @@ class JSONHandler(tornado.web.RequestHandler):
 			self.reply(None, encrypted)
 
 
-def main():
+def main() -> None:
+	"""
+	Initialize and start the fake Tuya registration server.
+
+	This function:
+	1. Parses command-line options (port, address, debug mode, secKey)
+	2. Calculates firmware file hashes for upgrade responses
+	3. Configures Tornado web application with routes:
+	   - / : Connection confirmation
+	   - /gw.json, /d.json : API endpoints
+	   - /files/* : Static firmware file serving
+	   - /* : Catch-all redirect to root
+	4. Starts the HTTP server on the specified address and port
+	5. Enters the Tornado event loop
+
+	Command-line Options:
+		--port: Server port (default: 80)
+		--addr: Server IP address (default: 10.42.42.1)
+		--debug: Enable debug mode (default: True)
+		--secKey: AES encryption key for protocol 2.2 (default: "0000000000000000")
+
+	Raises:
+		OSError: If the server cannot bind to the specified port (e.g., EADDRINUSE)
+	"""
 	parse_command_line()
 	get_file_stats('../files/upgrade.bin')
 	app = tornado.web.Application(
@@ -243,7 +462,7 @@ def main():
 			(r".*", tornado.web.RedirectHandler, {"url": "http://" + options.addr + "/", "permanent": False}),
 		],
 		#template_path=os.path.join(os.path.dirname(__file__), "templates"),
-		#static_path=os.path.join(os.path.dirname(__file__), "static"),
+		#static_path=os.path.join(os.path.dirname(__file__), "templates"),
 		debug=options.debug,
 	)
 	try:
