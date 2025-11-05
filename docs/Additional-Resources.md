@@ -1,8 +1,14 @@
 # Additional Resources
 
+**Last Updated:** 2025-11-05
+**Status:** ✅ Complete
+
+> **Note:** This page contains external links to resources from the original tuya-convert project and third-party tools.
+
 ## Video Tutorials
 
-**Video walkthrough** (from original tuya-convert project): https://github.com/ct-Open-Source/tuya-convert/issues/42
+**Video walkthrough** (from original tuya-convert project):
+https://github.com/ct-Open-Source/tuya-convert/issues/42
 
 ## Third-Party Tools
 
