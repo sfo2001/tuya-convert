@@ -34,6 +34,33 @@ archInstall() {
 	deactivate
 }
 
+gentooInstall() {
+	# Sync Portage tree (optional, user may want to do this manually)
+	echo "Syncing Portage tree (this may take a while)..."
+	sudo emerge --sync
+
+	# Install system dependencies using Gentoo's emerge
+	echo "Installing system dependencies..."
+	sudo emerge --ask --verbose dev-vcs/git net-wireless/iw net-dns/dnsmasq \
+		net-wireless/hostapd app-misc/screen net-misc/curl \
+		dev-lang/python sys-devel/gcc sys-devel/make \
+		app-misc/mosquitto sys-apps/haveged sys-apps/net-tools \
+		dev-libs/openssl net-wireless/rfkill sys-apps/iproute2 \
+		sys-apps/iputils
+
+	# Create Python virtual environment to comply with PEP 668
+	# This prevents "externally managed environment" errors on modern distributions
+	echo "Creating Python virtual environment..."
+	python3 -m venv venv
+
+	# Install Python packages into the virtual environment
+	echo "Installing Python packages into virtual environment..."
+	source venv/bin/activate
+	pip install --upgrade pip
+	pip install -r requirements.txt
+	deactivate
+}
+
 if [[ -e /etc/os-release ]]; then
 	source /etc/os-release
 else
@@ -45,6 +72,8 @@ if [[ ${ID} == 'debian' ]] || [[ ${ID_LIKE-} == 'debian' ]]; then
 	debianInstall
 elif [[ ${ID} == 'arch' ]] || [[ ${ID_LIKE-} == 'arch' ]]; then
 	archInstall
+elif [[ ${ID} == 'gentoo' ]] || [[ ${ID_LIKE-} == 'gentoo' ]]; then
+	gentooInstall
 else
 	if [[ -n ${ID_LIKE-} ]]; then
 		printID="${ID}/${ID_LIKE}"
