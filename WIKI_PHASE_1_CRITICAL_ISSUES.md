@@ -166,7 +166,7 @@ Added prominent note in "Reference Files" section:
 
 #### Commit
 - **Message:** "docs(wiki): document external file attachments in PSK format page"
-- **SHA:** [pending]
+- **SHA:** d175171
 - **Date:** 2025-11-05
 
 ---
@@ -198,7 +198,7 @@ Added prominent note in "Reference Files" section:
 | 1.1 | docs: migrate wiki to main repository /docs directory | 2025-11-04 | 256a89b | ✅ |
 | 1.2 | docs(wiki): standardize Additional-Resources with external link documentation | 2025-11-05 | de9178e | ✅ |
 | 1.2 (update) | docs: update WIKI_RESTRUCTURING_PLAN.md with Step 1.2 completion | 2025-11-05 | 74fa883 | ✅ |
-| 1.3 | docs(wiki): document external file attachments in PSK format page | 2025-11-05 | [pending] | ⏳ |
+| 1.3 | docs(wiki): document external file attachments in PSK format page | 2025-11-05 | d175171 | ✅ |
 
 ---
 
