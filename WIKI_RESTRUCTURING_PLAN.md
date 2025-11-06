@@ -394,7 +394,7 @@ Home (Landing page with full navigation)
 | Phase 2: Create Standard Templates | ✅ Complete | 1/1 (100%) | 2025-11-05 | 2025-11-05 | [WIKI_PHASE_2_TEMPLATES.md](WIKI_PHASE_2_TEMPLATES.md) |
 | Phase 3: Complete Incomplete Pages | ✅ Complete | 3/3 (100%) | 2025-11-05 | 2025-11-05 | [WIKI_PHASE_3_INCOMPLETE_PAGES.md](WIKI_PHASE_3_INCOMPLETE_PAGES.md) |
 | Phase 4: Create New Essential Pages | ✅ Complete | 7/7 (100%) | 2025-11-05 | 2025-11-05 | [WIKI_PHASE_4_NEW_PAGES.md](WIKI_PHASE_4_NEW_PAGES.md) |
-| Phase 5: Apply Templates to Existing Pages | 🔄 In Progress | 1/8 (12.5%) | 2025-11-06 | - | [WIKI_PHASE_5_APPLY_TEMPLATES.md](WIKI_PHASE_5_APPLY_TEMPLATES.md) |
+| Phase 5: Apply Templates to Existing Pages | 🔄 In Progress | 2/8 (25%) | 2025-11-06 | - | [WIKI_PHASE_5_APPLY_TEMPLATES.md](WIKI_PHASE_5_APPLY_TEMPLATES.md) |
 | Phase 6: Create New Home Page | ⏳ Pending | 0/1 (0%) | - | - | [WIKI_PHASE_6_NEW_HOME.md](WIKI_PHASE_6_NEW_HOME.md) |
 | Phase 7: Cross-Reference and Link All Pages | ⏳ Pending | 0/2 (0%) | - | - | [WIKI_PHASE_7_CROSS_REFERENCE.md](WIKI_PHASE_7_CROSS_REFERENCE.md) |
 | Phase 8: Final Validation | ⏳ Pending | 0/4 (0%) | - | - | [WIKI_PHASE_8_VALIDATION.md](WIKI_PHASE_8_VALIDATION.md) |
@@ -407,14 +407,15 @@ Home (Landing page with full navigation)
 - **In Progress Phases:** 1 (10%)
 - **Pending Phases:** 4 (40%)
 - **Total Steps:** 37 (Phase 5 expanded from 5 to 8 sub-steps with PSK extraction integration)
-- **Completed Steps:** 23 (62%)
+- **Completed Steps:** 24 (65%)
 - **In Progress Steps:** 0 (0%)
-- **Pending Steps:** 14 (38%)
+- **Pending Steps:** 13 (35%)
 
 ### Recent Activity
 
 | Date | Phase | Step | Description | Status |
 |------|-------|------|-------------|--------|
+| 2025-11-06 | 5 | 5.2 | Standardize Raspberry Pi Setup Guides | ✅ Complete |
 | 2025-11-06 | 5 | 5.1 | Standardize Compatible-Devices Pages | ✅ Complete |
 | 2025-11-05 | 4 | 4.7 | Create Contributing Guide | ✅ Complete |
 | 2025-11-05 | 4 | 4.6 | Create API Reference | ✅ Complete |
