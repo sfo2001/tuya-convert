@@ -1,9 +1,9 @@
 # Phase 5: Apply Templates to Existing Pages
 
-**Phase Status:** ⏳ PENDING
-**Start Date:** -
+**Phase Status:** 🔄 IN PROGRESS
+**Start Date:** 2025-11-06
 **End Date:** -
-**Progress:** 0/8 sub-steps (0%)
+**Progress:** 1/8 sub-steps (12.5%)
 **Note:** Step 5.4 includes 4 sub-steps (5.4a-5.4d) for PSK documentation restructuring
 
 [← Back to Overview](WIKI_RESTRUCTURING_PLAN.md) | [← Previous Phase](WIKI_PHASE_4_NEW_PAGES.md) | [Next Phase →](WIKI_PHASE_6_NEW_HOME.md)
@@ -29,7 +29,7 @@ Target page groups:
 
 | Step | Pages | Count | Status | Est. Time |
 |------|-------|-------|--------|-----------|
-| 5.1 | Compatible device pages | 3 | ⏳ Pending | 2 hours |
+| 5.1 | Compatible device pages | 3 | ✅ Complete | 2 hours |
 | 5.2 | Setup guides | 2 | ⏳ Pending | 1.5 hours |
 | 5.3 | Advanced topic pages | 2 | ⏳ Pending | 1 hour |
 | 5.4 | Technical reference pages (PSK) | 4 | ⏳ Pending | 2.5 hours |
@@ -39,29 +39,38 @@ Target page groups:
 
 ## Detailed Steps
 
-### Step 5.1: Standardize Compatible-Devices Pages ⏳
+### Step 5.1: Standardize Compatible-Devices Pages ✅
 
-**Pages to Update:**
+**Status:** COMPLETE
+**Completed:** 2025-11-06
+
+**Pages Updated:**
 - `Compatible-devices.md`
 - `Compatible-devices-(HTTP-firmware).md`
 - `Compatible-devices-(HTTPS-firmware).md`
 
 **Template:** Device-List-Template.md
 
-**Changes per file:**
-- Add header with status and last updated
-- Add "How to Contribute" section
-- Ensure consistent device entry format
-- Add cross-references to related pages
-- Add footer with help links
+**Changes Applied:**
+- Added standard header with status and last updated date
+- Added comprehensive overview sections
+- Added "How to Contribute" sections
+- Standardized heading structure (H3 for device entries)
+- Added cross-references to related pages
+- Added external resources sections
+- Added footer with help links
+- Preserved all original device data
 
 **Validation:**
-- [ ] All original device entries preserved
-- [ ] Consistent formatting across all 3 pages
-- [ ] Templates applied correctly
-- [ ] Cross-references added
+- [x] All original device entries preserved
+- [x] Consistent formatting across all 3 pages
+- [x] Templates applied correctly
+- [x] Cross-references added
 
-**Commit:** "docs(wiki): standardize device compatibility pages"
+**Commit:**
+- Message: "docs(wiki): standardize device compatibility pages"
+- SHA: a799b33
+- Date: 2025-11-06
 
 ---
 
@@ -333,7 +342,7 @@ Each step must validate that:
 
 | Step | Commit Message | Date | SHA | Validated |
 |------|---------------|------|-----|-----------|
-| 5.1 | [pending] | - | - | ⏳ |
+| 5.1 | docs(wiki): standardize device compatibility pages | 2025-11-06 | a799b33 | ✅ |
 | 5.2 | [pending] | - | - | ⏳ |
 | 5.3 | [pending] | - | - | ⏳ |
 | 5.4a | docs(wiki): extract PSK firmware database into standalone page | - | - | ⏳ |
