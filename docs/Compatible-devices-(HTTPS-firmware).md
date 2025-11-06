@@ -1,6 +1,39 @@
-The following devices are produced by Tuya and can be flashed with third-party firmware. It is recommended that you make a backup of the factory firmware in the event that you need to revert to it should the third-party firmware not function properly with your device.
+# Compatible Devices (HTTPS Firmware)
 
-Since [Tasmota](https://github.com/arendst/Tasmota) version 6.4.1.16, the firmware supports [templates](https://tasmota.github.io/docs/Templates/) for configuring unsupported devices. Templates are easily configurable using the web UI. It is recommended to use templates instead of changing `Generic Module (18)` GPIO assignments. [Tasmota Device Templates Repository](https://templates.blakadder.com/) maintains a list of templates for Tasmota as well as a list of unsupported devices (ones without an ESP82xx chip). There are numerous devices based on Tuya Wi-Fi modules. It may not be possible for all of them to work as expected with Tasmota. If you have a new device that does not have an existing template, you may refer to [Configure Unknown Device guide](https://tasmota.github.io/docs/Configuration-Procedure-for-New-Devices/) to configure the device.
+**Last Updated:** 2025-11-06
+**Status:** 🔄 Community Updated
+
+## Overview
+
+This page lists devices produced by Tuya that use HTTPS-based firmware and can be flashed with third-party firmware using tuya-convert. The devices are organized by category (Sockets, Lights, Switches, LED Strips, Fans, and Miscellaneous) and include success/failure status, GPIO pin configurations, model information, and detailed notes about compatibility.
+
+**Important:** It is recommended that you make a backup of the factory firmware in the event that you need to revert to it should the third-party firmware not function properly with your device.
+
+### About Firmware Compatibility
+
+Devices with HTTPS firmware often have different flashing characteristics compared to HTTP-based devices. Some devices that previously worked with tuya-convert may have received firmware updates that prevent OTA flashing. The tables below indicate the success status for each device.
+
+### About Tasmota Templates
+
+Since [Tasmota](https://github.com/arendst/Tasmota) version 6.4.1.16, the firmware supports [templates](https://tasmota.github.io/docs/Templates/) for configuring unsupported devices. Templates are easily configurable using the web UI. It is recommended to use templates instead of changing `Generic Module (18)` GPIO assignments.
+
+The [Tasmota Device Templates Repository](https://templates.blakadder.com/) maintains a list of templates for Tasmota as well as a list of unsupported devices (ones without an ESP82xx chip). There are numerous devices based on Tuya Wi-Fi modules. It may not be possible for all of them to work as expected with Tasmota. If you have a new device that does not have an existing template, you may refer to the [Configure Unknown Device guide](https://tasmota.github.io/docs/Configuration-Procedure-for-New-Devices/) to configure the device.
+
+## How to Contribute
+
+To add a device to this list:
+1. Attempt to flash the device using tuya-convert
+2. Document the success or failure status
+3. If successful, test the device thoroughly and document all GPIO pin assignments
+4. Include purchase date and source to help track firmware versions
+5. [Edit this page](https://github.com/sfo2001/tuya-convert/edit/master/docs/Compatible-devices-(HTTPS-firmware).md) or [open an issue](https://github.com/sfo2001/tuya-convert/issues) with the device details
+
+## Device Tables
+
+**Legend:**
+- ✅ **Yes** - Successfully flashed with tuya-convert
+- ❌ **No** - Failed to flash (often due to non-ESP chip or updated firmware)
+- ⚠️ **Yes*** - Success with caveats (see notes column)
 
 ## Sockets/Multi-sockets
 
@@ -123,3 +156,29 @@ Since [Tasmota](https://github.com/arendst/Tasmota) version 6.4.1.16, the firmwa
 |Yes|Generic|EU|[Wi-Fi Smart IR Controller SRW-001 (I bought it from AliExpress)](http://google.com/#q=SRW-001)|The YTF IR Bridge Tasmota module works perfectly|![](https://ae01.alicdn.com/kf/H4bc997073d5c49c5a809706df9ebcf46n/TV-Universal-Remote-Control-14m-Smart-Life-IR-Wireless-Remote-Control-Voice-Alexa-Need-Write-Use.jpg_960x960.jpg)|Please make sure you upgrade the Tasmota firmware to [Tasmota-IR](https://github.com/arendst/Tasmota/wiki/Tasmota-IR)
 |Yes|Moes/Beca|EU|MOES WiFi Smart Thermostat (BHT-002-GCLW) My variant was: 5A for boiler heating white|N/A|![](https://images-eu.ssl-images-amazon.com/images/I/41CYufQVMgL._SL500_AC_SS350_.jpg)|Use tuya-convert to flash this firmware: https://github.com/klausahrenberg/WThermostatBeca Tasmota will NOT work.
 |No|Tuya|EU|TY01|n/a||TY01 Door Window Contact Sensor, offline after intermediate reboot|
+## Related Pages
+
+- [Compatible Devices Overview](Compatible-devices) - Main device compatibility page
+- [Compatible Devices (HTTP Firmware)](Compatible-devices-(HTTP-firmware)) - Devices using HTTP-based firmware
+- [Troubleshooting](Troubleshooting) - Common issues and solutions
+- [Installation Guide](Installation) - Get started with tuya-convert
+- [Quick Start Guide](Quick-Start-Guide) - Quick reference for flashing devices
+
+## External Resources
+
+- [Tasmota Device Templates Repository](https://templates.blakadder.com/) - Community-maintained device templates
+- [Tasmota Configuration Guide](https://tasmota.github.io/docs/Configuration-Procedure-for-New-Devices/) - Configure unknown devices
+- [Tasmota Documentation](https://tasmota.github.io/docs/) - Complete Tasmota documentation
+
+## Notes on Device Compatibility
+
+Many devices that previously worked with tuya-convert have received firmware updates that prevent OTA flashing. If you're purchasing a device from this list:
+
+1. Check the purchase date in the notes column
+2. Newer purchases of the same model may have updated firmware
+3. Consider asking the seller about the firmware version before purchase
+4. Some devices have switched to non-ESP chips (e.g., RTL8710BN) and cannot be flashed with tuya-convert
+
+---
+
+*Need help? [Open an issue](https://github.com/sfo2001/tuya-convert/issues) or check the [Troubleshooting](Troubleshooting) page.*
