@@ -20,8 +20,11 @@
 | Issue | Title | Status | Location | Commits | PR | Notes |
 |-------|-------|--------|----------|---------|-----|-------|
 | [#1143](https://github.com/ct-Open-Source/tuya-convert/issues/1143) | PEP 668 compliance | ✅ Resolved | `resolved/1143-pep668-compliance/` | 1663d29 | #17 | Virtual env support |
+| [#1145](https://github.com/ct-Open-Source/tuya-convert/issues/1145) | SP25 dead after flash | 📦 Archived | `archived/1145-sp25-user-error/` | - | - | User error (wrong MAC) |
+| [#1146](https://github.com/ct-Open-Source/tuya-convert/issues/1146) | SC400W won't flash | 📦 Archived | `archived/1146-sc400w-incompatible/` | - | - | Non-ESP chip |
 | [#1153](https://github.com/ct-Open-Source/tuya-convert/issues/1153) | sslpsk3 migration | ✅ Resolved | - | 59549b1 | #10 | Python 3.12+ compat |
 | [#1157](https://github.com/ct-Open-Source/tuya-convert/issues/1157) | Chip incompatibility | 📦 Archived | `archived/1157-chip-incompatible/` | ea46fb1 | #19 | ECR6600 chip (not ESP) |
+| [#1159](https://github.com/ct-Open-Source/tuya-convert/issues/1159) | PEP 668 externally managed | ✅ Resolved | `resolved/1159-pep668-duplicate/` | b8a8291 | #9 | Duplicate of #1143 |
 | [#1161](https://github.com/ct-Open-Source/tuya-convert/issues/1161) | Docker files/ mount | ✅ Resolved | - | bb8f12e | #14 | Docker volume fix |
 | [#1162](https://github.com/ct-Open-Source/tuya-convert/issues/1162) | SmartConfig loop | 🔍 Investigating | `open/1162-smartconfig-loop/` | - | - | Device won't connect |
 | [#1163](https://github.com/ct-Open-Source/tuya-convert/issues/1163) | Nix flake support | ✅ Resolved | `open/1163-nix-flake/` | f78bd4a | - | Reproducible env |
@@ -52,6 +55,26 @@
 - **PR**: #10
 - **Files**: No analysis document (resolved before tracking system)
 - **Impact**: Python 3.12+ compatibility
+
+#### #1159: error: This environment is externally managed
+- **Status**: ✅ Resolved (Duplicate of #1143)
+- **Date Resolved**: 2025-04-01 (reported), resolved by existing venv implementation
+- **Solution**: Same as #1143 - Python virtual environment support for PEP 668 compliance
+- **Commits**: b8a8291 (primary), 90547b0 (refactoring)
+- **PR**: #9
+- **Files**:
+  - `resolved/1159-pep668-duplicate/analysis.md`
+  - `resolved/1159-pep668-duplicate/summary.md`
+  - Same implementation files as #1143 (install_prereq.sh, start_flash.sh, requirements.txt, etc.)
+- **Impact**: Duplicate report of #1143 - validates that PEP 668 issue is widespread
+- **Technical Details**:
+  - Identical error message: "externally-managed-environment"
+  - Identical root cause: System-wide pip install violates PEP 668
+  - Identical solution: Virtual environment support
+  - Identical affected systems: Debian 12+, Ubuntu 23.04+, Arch, Fedora 38+
+- **User Contribution**: ricardopretrazy attempted `--break-system-packages` workaround
+- **Maintainer Response**: Correctly suggested virtual environment solution (already implemented)
+- **Related**: #1143 (primary issue), #1167 (venv PATH), #1153 (sslpsk3 in venv)
 
 #### #1161: Docker Tuya Convert unable to see esphome firmware.bin
 - **Status**: ✅ Resolved
@@ -149,7 +172,72 @@
 
 ---
 
-### 📦 Archived Issues (2)
+### 📦 Archived Issues (4)
+
+#### #1145: Teckin/Tuya SP25 Plug: dead after post-wifi-reboot
+- **Status**: 📦 Archived (User Error - Self-Resolved)
+- **Date Archived**: 2025-11-06
+- **Date Reported**: 2024-12-05
+- **Reporter**: STR4NG3RdotSH
+- **Reason**: User error - device was working correctly, user was checking wrong MAC address
+- **Files**:
+  - `archived/1145-sp25-user-error/analysis.md`
+  - `archived/1145-sp25-user-error/summary.md`
+- **Device**: Teckin SP25 smart plug (ESP8266-based)
+- **What Happened**:
+  - User successfully flashed device with tasmota-lite.bin
+  - After WiFi config reboot, device appeared "dead"
+  - User performed extensive troubleshooting
+  - Used fast power cycle recovery (6x power reinsertion) to enter config mode
+  - Reconfigured WiFi and rebooted again
+  - Discovered device had been connected all along - was checking wrong MAC address
+- **Outcome**: ✅ Device working perfectly, tuya-convert functioned correctly
+- **Educational Value**:
+  - Documents fast power cycle recovery feature usage
+  - Shows common post-flash verification confusion
+  - Validates Teckin SP25 compatibility with tuya-convert
+  - Demonstrates importance of verifying correct MAC address from logs
+- **Potential Documentation Improvements**:
+  - Add post-flash verification guide
+  - Document fast power cycle recovery feature
+  - Add troubleshooting section for "device appears dead" scenarios
+  - Explain MAC address identification best practices
+- **Related**: Common user confusion pattern, not a software issue
+
+#### #1146: my SC400W will not flash with raspberry5
+- **Status**: 📦 Archived (Hardware Incompatibility)
+- **Date Archived**: 2025-11-06
+- **Date Reported**: 2024-12-07
+- **Reporter**: HaraldKiessling
+- **Reason**: Device does not use ESP82xx chip - tuya-convert detected non-ESP hardware
+- **Files**:
+  - `archived/1146-sc400w-incompatible/analysis.md`
+  - `archived/1146-sc400w-incompatible/summary.md`
+- **Device**: Loratap SC400W (Product ID: YWK0ZiumXZGkb8nj, Firmware: 1.0.6)
+- **Platform**: Raspberry Pi 5
+- **What Happened**:
+  - User attempted to flash device using tuya-convert
+  - SmartConfig transmission worked
+  - Device failed to connect
+  - tuya-convert diagnostic reported: "Your device does not use an ESP82xx"
+  - Flash process safely aborted
+- **Chip Type**: Non-ESP (likely Beken BK7231 or Realtek RTL8710)
+- **Why Cannot Be Fixed**: tuya-convert is fundamentally ESP-specific, cannot support other architectures
+- **Outcome**: ✅ tuya-convert correctly detected incompatibility and prevented failed flash
+- **Alternative Solutions**:
+  - CloudCutter (OTA for Beken): https://github.com/tuya-cloudcutter/tuya-cloudcutter
+  - ltchiptool (Serial flashing): https://github.com/libretiny-eu/ltchiptool
+  - OpenBeken firmware: https://github.com/openshwprojects/OpenBK7231T_App
+- **Educational Value**:
+  - Demonstrates tuya-convert's chip detection working correctly
+  - Highlights trend of Tuya moving from ESP to cheaper chips (post-2020)
+  - Provides guidance for non-ESP device alternatives
+- **Potential Documentation Improvements**:
+  - Add prominent compatibility warning in README (ESP-only)
+  - Create compatibility check guide
+  - Enhance diagnostic error message with links to alternatives
+  - Document chip transition timeline (ESP -> Beken trend)
+- **Related**: #1157 (ECR6600 incompatibility), #1164 (video doorbell - similar pattern of non-ESP devices)
 
 #### #1157: new tuya smart plug 20A convert failed attempt
 - **Status**: 📦 Archived (Hardware Incompatibility)
@@ -189,11 +277,11 @@
 
 ## Statistics
 
-- **Total Analyzed**: 9 issues
-- **Resolved**: 6 (67%)
-- **Investigating**: 1 (11%)
-- **Archived**: 2 (22%)
-- **Resolution Rate**: 86% (6/7 actionable issues)
+- **Total Analyzed**: 12 issues
+- **Resolved**: 7 (58%)
+- **Investigating**: 1 (8%)
+- **Archived**: 4 (34%)
+- **Resolution Rate**: 88% (7/8 actionable issues, excluding user errors & hardware incompatibilities)
 
 ---
 
@@ -201,12 +289,15 @@
 
 ```
 2024-11-12  #1143  PEP 668 compliance              ✅ Resolved
+2024-12-05  #1145  SP25 dead after flash           📦 Archived (User error)
+2024-12-07  #1146  SC400W incompatible chip        📦 Archived (Hardware)
 2025-01-04  #1153  sslpsk3 migration                ✅ Resolved
-2025-03-05  #1157  Chip incompatibility             📦 Archived
+2025-03-05  #1157  Chip incompatibility             📦 Archived (Hardware)
+2025-04-01  #1159  PEP 668 externally managed       ✅ Resolved (Duplicate)
 2025-05-12  #1161  Docker files/ mount              ✅ Resolved
 2025-05-26  #1162  SmartConfig loop                 🔍 Investigating
 2025-06-13  #1163  Nix flake support                ✅ Resolved
-2025-06-19  #1164  Video doorbell telnet            📦 Archived
+2025-06-19  #1164  Video doorbell telnet            📦 Archived (Out of scope)
 2025-09-19  #1165  Gentoo install support           ✅ Resolved
 2025-10-15  #1167  Venv PATH sudo screen            ✅ Resolved
 ```
@@ -215,9 +306,10 @@
 
 ## Common Themes
 
-### Python Environment Management (5 issues)
+### Python Environment Management (6 issues)
 - **#1143**: PEP 668 compliance → Virtual environment
 - **#1153**: Python 3.12+ compatibility → sslpsk3 migration
+- **#1159**: PEP 668 externally managed → Virtual environment (duplicate of #1143)
 - **#1162**: SmartConfig loop → Likely sslpsk3 (investigation ongoing)
 - **#1165**: Gentoo install → emerge + venv support
 - **#1167**: Venv in sudo screen → PATH preservation
@@ -231,11 +323,17 @@
 
 **Result**: Multiple installation options (Native on Debian/Arch/Gentoo, Docker, Nix) all fully functional
 
-### Hardware Compatibility / Out of Scope (2 issues)
+### Hardware Compatibility / Out of Scope (3 issues)
+- **#1146**: SC400W with non-ESP chip (likely Beken BK7231 or RTL8710)
 - **#1157**: Non-ESP chip devices (ECR6600 smart plug)
 - **#1164**: Video doorbell exploration (ARM SoC, out of scope)
 
-**Result**: Clear documentation that tuya-convert is ESP-only, guidance to alternatives
+**Result**: Clear documentation that tuya-convert is ESP-only, guidance to alternatives (CloudCutter, ltchiptool)
+
+### User Error / Support (1 issue)
+- **#1145**: Device appeared dead after flash (user checking wrong MAC address)
+
+**Result**: Device worked correctly; validates Teckin SP25 compatibility; documents fast power cycle recovery
 
 ---
 
@@ -247,10 +345,11 @@
 - [Archived Issues](archived/) - 📦 Not actionable
 
 ### By Topic
-- **Python/Dependencies**: #1143, #1153, #1162, #1165, #1167
+- **Python/Dependencies**: #1143, #1153, #1159, #1162, #1165, #1167
 - **Docker**: #1161
 - **Installation**: #1163, #1165
-- **Hardware/Out of Scope**: #1157, #1164
+- **Hardware/Out of Scope**: #1146, #1157, #1164
+- **User Error/Support**: #1145
 
 ### Key Documents
 - [README.md](README.md) - Guide to this directory
@@ -268,10 +367,13 @@
 ### Already in Fork
 - ✅ #1143 - Virtual environment support
 - ✅ #1153 - sslpsk3 migration
+- ✅ #1159 - PEP 668 compliance (duplicate of #1143)
 - ✅ #1161 - Docker volume fix
 - ✅ #1165 - Gentoo Linux support
 
 ### Documented Only (Archived/Out of Scope)
+- 📦 #1145 - User error documentation (fast power cycle recovery)
+- 📦 #1146 - Non-ESP chip guidance (CloudCutter, ltchiptool alternatives)
 - 📦 #1157 - Alternative methods for non-ESP chips
 - 📦 #1164 - Video doorbell guidance (out of scope)
 
@@ -280,12 +382,16 @@
 ## Notes
 
 ### Next Steps
-1. Request diagnostic information from user for #1162 (log files, environment details)
-2. Create PR for #1163 (Nix flake) to upstream
-3. Create PR for #1165 (Gentoo support) to upstream
-4. Create PR for #1167 (venv PATH fix) to upstream
-5. Monitor for new upstream issues to analyze
-6. All recent open issues now analyzed!
+1. Continue analyzing remaining open issues (check for newer issues > #1167)
+2. Request diagnostic information from user for #1162 (log files, environment details)
+3. Create PR for #1143 + #1159 (PEP 668 virtual environment support) to upstream
+4. Create PR for #1163 (Nix flake) to upstream
+5. Create PR for #1165 (Gentoo support) to upstream
+6. Create PR for #1167 (venv PATH fix) to upstream
+7. Consider adding post-flash verification guide (based on #1145 learnings)
+8. Consider adding prominent ESP-only compatibility warning to README (based on #1146, #1157)
+9. Consider enhancing non-ESP diagnostic message with alternative tool links
+10. Monitor for new upstream issues to analyze
 
 ### Lessons Learned
 - **Virtual environments are critical** on modern Linux (PEP 668)
@@ -293,6 +399,12 @@
 - **Screen sessions with sudo** need explicit venv activation
 - **Hardware limitations** (non-ESP chips) should be clearly documented
 - **Multiple installation methods** (Native, Docker, Nix) serve different use cases
+- **User verification errors** common after flashing (wrong MAC address, wrong hostname)
+- **Fast power cycle recovery** is a valuable firmware feature that should be documented
+- **Post-flash verification guide** would reduce false "device dead" reports
+- **Non-ESP chip trend accelerating** - most new Tuya devices (2020+) use Beken/RTL, not ESP
+- **ESP-only scope needs prominent documentation** - users need to know before attempting
+- **Alternative tools exist** for non-ESP (CloudCutter, ltchiptool) - link to them prominently
 
 ### Patterns Observed
 1. Many issues relate to Python environment management in modern Linux
@@ -300,6 +412,9 @@
 3. Nix offers third option for reproducibility
 4. Hardware incompatibilities need clear documentation upfront
 5. Users often confuse tuya-convert's scope (ESP firmware flashing vs. general Tuya hacking)
+6. Post-flash verification confusion is common (MAC addresses, hostnames, device discovery)
+7. **Increasing non-ESP device reports** (2-3 out of 12 issues) - reflects chip transition trend
+8. tuya-convert's diagnostic correctly detects non-ESP chips but needs better guidance on alternatives
 
 ---
 
