@@ -3,7 +3,7 @@
 **Phase Status:** 🔄 IN PROGRESS
 **Start Date:** 2025-11-06
 **End Date:** -
-**Progress:** 2/8 sub-steps (25%)
+**Progress:** 3/8 sub-steps (37.5%)
 **Note:** Step 5.4 includes 4 sub-steps (5.4a-5.4d) for PSK documentation restructuring
 
 [← Back to Overview](WIKI_RESTRUCTURING_PLAN.md) | [← Previous Phase](WIKI_PHASE_4_NEW_PAGES.md) | [Next Phase →](WIKI_PHASE_6_NEW_HOME.md)
@@ -31,7 +31,7 @@ Target page groups:
 |------|-------|-------|--------|-----------|
 | 5.1 | Compatible device pages | 3 | ✅ Complete | 2 hours |
 | 5.2 | Setup guides | 2 | ✅ Complete | 1.5 hours |
-| 5.3 | Advanced topic pages | 2 | ⏳ Pending | 1 hour |
+| 5.3 | Advanced topic pages | 2 | ✅ Complete | 1 hour |
 | 5.4 | Technical reference pages (PSK) | 4 | ⏳ Pending | 2.5 hours |
 | 5.5 | Troubleshooting page | 1 | ⏳ Pending | 1 hour |
 
@@ -123,28 +123,58 @@ Target page groups:
 
 ---
 
-### Step 5.3: Standardize Advanced Topic Pages ⏳
+### Step 5.3: Standardize Advanced Topic Pages ✅
 
-**Pages to Update:**
+**Status:** COMPLETE
+**Completed:** 2025-11-06
+
+**Pages Updated:**
 - `Flash-a-multipart-binary.md`
 - `Flashing-of-WiFi-Switch-with-a-Raspberry-Pi.md`
 
 **Template:** Guide-Template.md
 
-**Changes per file:**
-- Add standard header
-- Add overview section
-- Add prerequisites
-- Add troubleshooting
-- Add related pages
-- Add code references
+**Changes Applied:**
+
+**Flash-a-multipart-binary.md:**
+- Added standard header with status and last updated date
+- Added comprehensive overview explaining multipart binary concept
+- Added detailed prerequisites section
+- Added "Understanding Flash Memory Layout" section
+- Restructured content into 6 numbered steps
+- Added flash offset conversion reference table
+- Added troubleshooting table with 5 common issues
+- Added related pages and references sections
+- Improved code formatting with syntax highlighting
+- Added standard footer
+
+**Flashing-of-WiFi-Switch-with-a-Raspberry-Pi.md:**
+- Added standard header with status and last updated date
+- Added comprehensive overview for manual serial flashing
+- Added prerequisites split into hardware/software/knowledge sections
+- Added "Background" section explaining the why
+- Added detailed "Reverse Engineering" section with test point identification
+- Reorganized into clear sections and subsections
+- Added wiring table for connection reference
+- Added ESP communication test section
+- Restructured flash procedure into 4 numbered steps
+- Added post-flashing configuration section
+- Added troubleshooting table with 7 common issues
+- Added safety warning section
+- Preserved all original images and technical content
+- Added standard footer
 
 **Validation:**
-- [ ] All original content preserved
-- [ ] Templates applied correctly
-- [ ] Technical accuracy verified
+- [x] All original content preserved and enhanced
+- [x] Templates applied correctly
+- [x] Technical accuracy verified and maintained
+- [x] Safety warnings prominent
+- [x] Code references included
 
-**Commit:** "docs(wiki): standardize advanced topic pages"
+**Commit:**
+- Message: "docs(wiki): standardize advanced topic pages"
+- SHA: b9afbb0
+- Date: 2025-11-06
 
 ---
 
@@ -367,7 +397,7 @@ Each step must validate that:
 |------|---------------|------|-----|-----------|
 | 5.1 | docs(wiki): standardize device compatibility pages | 2025-11-06 | a799b33 | ✅ |
 | 5.2 | docs(wiki): standardize Raspberry Pi setup guides | 2025-11-06 | 49a85e8 | ✅ |
-| 5.3 | [pending] | - | - | ⏳ |
+| 5.3 | docs(wiki): standardize advanced topic pages | 2025-11-06 | b9afbb0 | ✅ |
 | 5.4a | docs(wiki): extract PSK firmware database into standalone page | - | - | ⏳ |
 | 5.4b | docs(wiki): extract PSK research tools into standalone page | - | - | ⏳ |
 | 5.4c | docs(wiki): clean up PSK Identity 02 document after extractions | - | - | ⏳ |
