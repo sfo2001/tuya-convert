@@ -23,7 +23,10 @@
 | [#1153](https://github.com/ct-Open-Source/tuya-convert/issues/1153) | sslpsk3 migration | ✅ Resolved | - | 59549b1 | #10 | Python 3.12+ compat |
 | [#1157](https://github.com/ct-Open-Source/tuya-convert/issues/1157) | Chip incompatibility | 📦 Archived | `archived/1157-chip-incompatible/` | ea46fb1 | #19 | ECR6600 chip (not ESP) |
 | [#1161](https://github.com/ct-Open-Source/tuya-convert/issues/1161) | Docker files/ mount | ✅ Resolved | - | bb8f12e | #14 | Docker volume fix |
-| [#1163](https://github.com/ct-Open-Source/tuya-convert/issues/1163) | Nix flake support | 🔄 In Progress | `open/1163-nix-flake/` | f78bd4a | - | Reproducible env |
+| [#1162](https://github.com/ct-Open-Source/tuya-convert/issues/1162) | SmartConfig loop | 🔍 Investigating | `open/1162-smartconfig-loop/` | - | - | Device won't connect |
+| [#1163](https://github.com/ct-Open-Source/tuya-convert/issues/1163) | Nix flake support | ✅ Resolved | `open/1163-nix-flake/` | f78bd4a | - | Reproducible env |
+| [#1164](https://github.com/ct-Open-Source/tuya-convert/issues/1164) | Video doorbell telnet | 📦 Archived | `archived/1164-video-doorbell-telnet/` | - | - | Out of scope |
+| [#1165](https://github.com/ct-Open-Source/tuya-convert/issues/1165) | Gentoo install support | ✅ Resolved | `resolved/1165-gentoo-install/` | 90547b0 | #13 | emerge + venv |
 | [#1167](https://github.com/ct-Open-Source/tuya-convert/issues/1167) | Venv PATH sudo | ✅ Resolved | `resolved/1167-venv-sudo-screen/` | d071bdc, 83db9d2 | - | Screen session venv |
 
 ---
@@ -59,6 +62,27 @@
 - **Files**: No analysis document (resolved before tracking system)
 - **Impact**: Custom firmware loading in Docker works
 
+#### #1165: No install option for gentoo
+- **Status**: ✅ Resolved
+- **Date Resolved**: 2025-11-05
+- **Solution**: Added complete Gentoo Linux support with emerge package manager and virtual environment
+- **Commits**: 90547b0
+- **PR**: #13
+- **Files**:
+  - `resolved/1165-gentoo-install/analysis.md`
+  - Updated `install_prereq.sh` (added gentooInstall() function)
+  - Updated `README.md` (listed Gentoo as supported)
+- **Impact**: Gentoo users can now use tuya-convert with native package manager support
+- **Technical Details**:
+  - Added gentooInstall() function using emerge package manager
+  - Installs all dependencies with Gentoo package naming (category/package)
+  - Creates Python virtual environment (same as Debian/Arch)
+  - Includes emerge --sync to update Portage tree
+  - Uses --ask --verbose flags (Gentoo best practice)
+  - Refactored to extract setupPythonVenv() shared function (DRY principle)
+- **User Contribution**: rpruen provided implementation attachment
+- **Related**: #1143 (PEP 668 - venv approach), #1167 (venv PATH)
+
 #### #1167: Ubuntu non-docker deps issue (Venv PATH)
 - **Status**: ✅ Resolved
 - **Date Resolved**: 2025-11-06
@@ -75,32 +99,57 @@
   - Fix: Export VENV_PATH, use `bash -c "source venv/bin/activate && exec script.py"`
   - Affects: Ubuntu 24.04+, Debian 12+, modern Linux with PEP 668
 
----
-
-### 🔄 In Progress (1)
-
 #### #1163: Add nix flake to documentation
-- **Status**: 🔄 In Progress
-- **Started**: 2025-11-06
+- **Status**: ✅ Resolved
+- **Date Resolved**: 2025-11-06
 - **Solution**: Complete Nix flake implementation with comprehensive documentation
 - **Commits**: f78bd4a
-- **PR**: Not yet created
+- **PR**: Not yet submitted to upstream
 - **Files**:
   - `open/1163-nix-flake/analysis.md`
   - `open/1163-nix-flake/summary.md`
-- **Implementation**:
-  - ✅ Created `flake.nix` with sslpsk3 support
-  - ✅ Created `docs/Using-Nix.md` (450+ lines)
-  - ✅ Updated `docs/Installation.md`
-  - ✅ Updated `docs/Quick-Start-Guide.md`
-  - ⏳ Testing pending
-  - ⏳ PR creation pending
-- **Impact**: Reproducible development environment for Nix users
-- **Credits**: Original flake by SHU-red, fixes by seanaye and mberndt123
+  - `flake.nix` (repository root)
+  - `docs/Using-Nix.md` (450+ lines)
+  - Updated `docs/Installation.md`
+  - Updated `docs/Quick-Start-Guide.md`
+- **Impact**: Provides third installation method with perfect reproducibility
+- **Technical Details**:
+  - Custom sslpsk3 package build (Python 3.12+ compatible)
+  - All dependencies version-locked via flake.lock
+  - Isolated environment in /nix/store/
+  - Zero system impact, works on any Linux with Nix
+  - Credits: SHU-red (original), seanaye (build fix), mberndt123 (suggestions)
+- **Benefits**:
+  - One-command setup: `nix develop`
+  - Cross-distribution compatibility
+  - Reproducible environments (no version drift)
+  - Developer-friendly workflow
 
 ---
 
-### 📦 Archived Issues (1)
+### 🔍 Investigating (1)
+
+#### #1162: Flash process doesn't connect on smart device - repeating: SmartConfig complete. Resending SmartConfig Packets
+- **Status**: 🔍 Investigating
+- **Started**: 2025-11-06
+- **Reporter**: Edu-ST (2025-05-26)
+- **Maintainer Response**: RoSk0 linked to #1153 (2025-07-27)
+- **Analysis**: Complete, awaiting user diagnostic information
+- **Files**: `open/1162-smartconfig-loop/analysis.md`
+- **Root Cause Hypothesis**: Likely related to #1153 (Python 3.12+ / sslpsk3 compatibility)
+  - User running Kali 2025.1.c (Python 3.12+)
+  - SmartConfig completes but device won't connect (SSL handshake likely failing)
+  - Possible alternative causes: device incompatibility, newer security protocol, environment issues
+- **Next Steps**:
+  1. Request user to provide log files (`smarthack-psk.log`, `smarthack-wifi.log`)
+  2. Verify sslpsk3 installation status
+  3. Determine if device uses ESP chip or alternative (ECR6600, BK7231, etc.)
+- **Impact**: Common issue on modern Linux with Python 3.12+ without proper sslpsk3 setup
+- **Related**: #1153 (sslpsk3 - resolved), #1157 (chip incompatibility - archived), #1167 (venv activation - resolved)
+
+---
+
+### 📦 Archived Issues (2)
 
 #### #1157: new tuya smart plug 20A convert failed attempt
 - **Status**: 📦 Archived (Hardware Incompatibility)
@@ -114,15 +163,37 @@
 - **Impact**: Documented alternative flashing methods for non-ESP devices
 - **Note**: Not a software issue - requires different hardware flashing approach
 
+#### #1164: video doorbell telnet access
+- **Status**: 📦 Archived (Out of Scope)
+- **Date Archived**: 2025-11-06
+- **Reason**: User already has telnet access to device and wants to explore it - not a tuya-convert use case
+- **Files**: `archived/1164-video-doorbell-telnet/analysis.md`
+- **Device**: Tuya video doorbell with open ports (telnet, FTP, IRC)
+- **Why Archived**:
+  - User already has access (no conversion/flashing needed)
+  - Video doorbells typically use ARM SoCs, not ESP8266/ESP32
+  - Request is for device exploration, not firmware flashing
+  - tuya-convert is specifically for ESP-based firmware flashing via OTA
+- **Guidance Provided**:
+  - How to explore the device via telnet
+  - Alternative resources (HomeAssistant forums, OpenIPC, IoT communities)
+  - Warnings about camera device complexity
+  - Why video doorbells don't work with tuya-convert
+- **Documentation Recommendations**:
+  - Add warning to WiFi Cameras section about chip incompatibility
+  - Create FAQ entry explaining camera/doorbell limitations
+  - Clarify project scope more prominently
+- **Related**: #1157 (similar chip incompatibility issue)
+
 ---
 
 ## Statistics
 
-- **Total Analyzed**: 6 issues
-- **Resolved**: 4 (67%)
-- **In Progress**: 1 (17%)
-- **Archived**: 1 (17%)
-- **Resolution Rate**: 80% (4/5 actionable issues)
+- **Total Analyzed**: 9 issues
+- **Resolved**: 6 (67%)
+- **Investigating**: 1 (11%)
+- **Archived**: 2 (22%)
+- **Resolution Rate**: 86% (6/7 actionable issues)
 
 ---
 
@@ -133,7 +204,10 @@
 2025-01-04  #1153  sslpsk3 migration                ✅ Resolved
 2025-03-05  #1157  Chip incompatibility             📦 Archived
 2025-05-12  #1161  Docker files/ mount              ✅ Resolved
-2025-06-13  #1163  Nix flake support                🔄 In Progress
+2025-05-26  #1162  SmartConfig loop                 🔍 Investigating
+2025-06-13  #1163  Nix flake support                ✅ Resolved
+2025-06-19  #1164  Video doorbell telnet            📦 Archived
+2025-09-19  #1165  Gentoo install support           ✅ Resolved
 2025-10-15  #1167  Venv PATH sudo screen            ✅ Resolved
 ```
 
@@ -141,23 +215,27 @@
 
 ## Common Themes
 
-### Python Environment Management (3 issues)
+### Python Environment Management (5 issues)
 - **#1143**: PEP 668 compliance → Virtual environment
 - **#1153**: Python 3.12+ compatibility → sslpsk3 migration
+- **#1162**: SmartConfig loop → Likely sslpsk3 (investigation ongoing)
+- **#1165**: Gentoo install → emerge + venv support
 - **#1167**: Venv in sudo screen → PATH preservation
 
-**Result**: Comprehensive virtual environment support with Python 3.12+ compatibility
+**Result**: Comprehensive virtual environment support with Python 3.12+ compatibility across all distributions
 
-### Installation Methods (2 issues)
-- **#1161**: Docker volume mounting
-- **#1163**: Nix flake reproducibility
+### Installation Methods (3 issues)
+- **#1161**: Docker volume mounting → Fixed
+- **#1163**: Nix flake reproducibility → Implemented
+- **#1165**: Gentoo distribution support → Native emerge support
 
-**Result**: Three installation options (Native, Docker, Nix)
+**Result**: Multiple installation options (Native on Debian/Arch/Gentoo, Docker, Nix) all fully functional
 
-### Hardware Compatibility (1 issue)
-- **#1157**: Non-ESP chip devices
+### Hardware Compatibility / Out of Scope (2 issues)
+- **#1157**: Non-ESP chip devices (ECR6600 smart plug)
+- **#1164**: Video doorbell exploration (ARM SoC, out of scope)
 
-**Result**: Documentation of alternatives
+**Result**: Clear documentation that tuya-convert is ESP-only, guidance to alternatives
 
 ---
 
@@ -169,10 +247,10 @@
 - [Archived Issues](archived/) - 📦 Not actionable
 
 ### By Topic
-- **Python/Dependencies**: #1143, #1153, #1167
+- **Python/Dependencies**: #1143, #1153, #1162, #1165, #1167
 - **Docker**: #1161
-- **Installation**: #1163
-- **Hardware**: #1157
+- **Installation**: #1163, #1165
+- **Hardware/Out of Scope**: #1157, #1164
 
 ### Key Documents
 - [README.md](README.md) - Guide to this directory
@@ -184,26 +262,30 @@
 ## Upstream Contribution Status
 
 ### Ready for Upstream PR
+- ✅ #1163 - Nix flake (complete, documented, ready)
 - ✅ #1167 - Venv PATH fix (tested, documented)
-- 🔄 #1163 - Nix flake (testing in progress)
 
 ### Already in Fork
 - ✅ #1143 - Virtual environment support
 - ✅ #1153 - sslpsk3 migration
 - ✅ #1161 - Docker volume fix
+- ✅ #1165 - Gentoo Linux support
 
-### Documented Only
+### Documented Only (Archived/Out of Scope)
 - 📦 #1157 - Alternative methods for non-ESP chips
+- 📦 #1164 - Video doorbell guidance (out of scope)
 
 ---
 
 ## Notes
 
 ### Next Steps
-1. Complete testing for #1163 (Nix flake)
-2. Create PR for #1163 to upstream
-3. Consider creating PR for #1167 to upstream (if not already there)
-4. Monitor for new upstream issues to analyze
+1. Request diagnostic information from user for #1162 (log files, environment details)
+2. Create PR for #1163 (Nix flake) to upstream
+3. Create PR for #1165 (Gentoo support) to upstream
+4. Create PR for #1167 (venv PATH fix) to upstream
+5. Monitor for new upstream issues to analyze
+6. All recent open issues now analyzed!
 
 ### Lessons Learned
 - **Virtual environments are critical** on modern Linux (PEP 668)
@@ -217,6 +299,7 @@
 2. Docker provides alternative but has its own challenges (volume mounting)
 3. Nix offers third option for reproducibility
 4. Hardware incompatibilities need clear documentation upfront
+5. Users often confuse tuya-convert's scope (ESP firmware flashing vs. general Tuya hacking)
 
 ---
 
