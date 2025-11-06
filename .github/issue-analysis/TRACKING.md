@@ -23,6 +23,7 @@
 | [#1153](https://github.com/ct-Open-Source/tuya-convert/issues/1153) | sslpsk3 migration | ✅ Resolved | - | 59549b1 | #10 | Python 3.12+ compat |
 | [#1157](https://github.com/ct-Open-Source/tuya-convert/issues/1157) | Chip incompatibility | 📦 Archived | `archived/1157-chip-incompatible/` | ea46fb1 | #19 | ECR6600 chip (not ESP) |
 | [#1161](https://github.com/ct-Open-Source/tuya-convert/issues/1161) | Docker files/ mount | ✅ Resolved | - | bb8f12e | #14 | Docker volume fix |
+| [#1162](https://github.com/ct-Open-Source/tuya-convert/issues/1162) | SmartConfig loop | 🔍 Investigating | `open/1162-smartconfig-loop/` | - | - | Device won't connect |
 | [#1163](https://github.com/ct-Open-Source/tuya-convert/issues/1163) | Nix flake support | 🔄 In Progress | `open/1163-nix-flake/` | f78bd4a | - | Reproducible env |
 | [#1167](https://github.com/ct-Open-Source/tuya-convert/issues/1167) | Venv PATH sudo | ✅ Resolved | `resolved/1167-venv-sudo-screen/` | d071bdc, 83db9d2 | - | Screen session venv |
 
@@ -77,6 +78,28 @@
 
 ---
 
+### 🔍 Investigating (1)
+
+#### #1162: Flash process doesn't connect on smart device - repeating: SmartConfig complete. Resending SmartConfig Packets
+- **Status**: 🔍 Investigating
+- **Started**: 2025-11-06
+- **Reporter**: Edu-ST (2025-05-26)
+- **Maintainer Response**: RoSk0 linked to #1153 (2025-07-27)
+- **Analysis**: Complete, awaiting user diagnostic information
+- **Files**: `open/1162-smartconfig-loop/analysis.md`
+- **Root Cause Hypothesis**: Likely related to #1153 (Python 3.12+ / sslpsk3 compatibility)
+  - User running Kali 2025.1.c (Python 3.12+)
+  - SmartConfig completes but device won't connect (SSL handshake likely failing)
+  - Possible alternative causes: device incompatibility, newer security protocol, environment issues
+- **Next Steps**:
+  1. Request user to provide log files (`smarthack-psk.log`, `smarthack-wifi.log`)
+  2. Verify sslpsk3 installation status
+  3. Determine if device uses ESP chip or alternative (ECR6600, BK7231, etc.)
+- **Impact**: Common issue on modern Linux with Python 3.12+ without proper sslpsk3 setup
+- **Related**: #1153 (sslpsk3 - resolved), #1157 (chip incompatibility - archived), #1167 (venv activation - resolved)
+
+---
+
 ### 🔄 In Progress (1)
 
 #### #1163: Add nix flake to documentation
@@ -118,11 +141,12 @@
 
 ## Statistics
 
-- **Total Analyzed**: 6 issues
-- **Resolved**: 4 (67%)
-- **In Progress**: 1 (17%)
-- **Archived**: 1 (17%)
-- **Resolution Rate**: 80% (4/5 actionable issues)
+- **Total Analyzed**: 7 issues
+- **Resolved**: 4 (57%)
+- **In Progress**: 1 (14%)
+- **Investigating**: 1 (14%)
+- **Archived**: 1 (14%)
+- **Resolution Rate**: 67% (4/6 actionable issues)
 
 ---
 
@@ -133,6 +157,7 @@
 2025-01-04  #1153  sslpsk3 migration                ✅ Resolved
 2025-03-05  #1157  Chip incompatibility             📦 Archived
 2025-05-12  #1161  Docker files/ mount              ✅ Resolved
+2025-05-26  #1162  SmartConfig loop                 🔍 Investigating
 2025-06-13  #1163  Nix flake support                🔄 In Progress
 2025-10-15  #1167  Venv PATH sudo screen            ✅ Resolved
 ```
@@ -141,9 +166,10 @@
 
 ## Common Themes
 
-### Python Environment Management (3 issues)
+### Python Environment Management (4 issues)
 - **#1143**: PEP 668 compliance → Virtual environment
 - **#1153**: Python 3.12+ compatibility → sslpsk3 migration
+- **#1162**: SmartConfig loop → Likely sslpsk3 (investigation ongoing)
 - **#1167**: Venv in sudo screen → PATH preservation
 
 **Result**: Comprehensive virtual environment support with Python 3.12+ compatibility
@@ -169,7 +195,7 @@
 - [Archived Issues](archived/) - 📦 Not actionable
 
 ### By Topic
-- **Python/Dependencies**: #1143, #1153, #1167
+- **Python/Dependencies**: #1143, #1153, #1162, #1167
 - **Docker**: #1161
 - **Installation**: #1163
 - **Hardware**: #1157
@@ -200,10 +226,11 @@
 ## Notes
 
 ### Next Steps
-1. Complete testing for #1163 (Nix flake)
-2. Create PR for #1163 to upstream
-3. Consider creating PR for #1167 to upstream (if not already there)
-4. Monitor for new upstream issues to analyze
+1. Request diagnostic information from user for #1162 (log files, environment details)
+2. Complete testing for #1163 (Nix flake)
+3. Create PR for #1163 to upstream
+4. Consider creating PR for #1167 to upstream (if not already there)
+5. Monitor for new upstream issues to analyze
 
 ### Lessons Learned
 - **Virtual environments are critical** on modern Linux (PEP 668)
