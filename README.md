@@ -141,6 +141,7 @@ Building and running your container:
 
 Troubleshooting:
 * Q: Where are my logs after flashing? A: The folder can be adjusted in .env with LOCALBACKUPDIR, the path here may be relative or absolute
+* Q: How do I use custom firmware files? A: Simply place your .bin firmware files in the `files/` directory - they are automatically mounted and will appear in the flash menu. No rebuild required!
 * Q: I don't want that my container is deleted after running tuya, I need this for troubleshooting! How do I accomplish this? A: Just remove --rm from `docker-compose run --rm tuya`
 * Q: I want to start the container, but instead of starting tuya immediately I want to get into bash. Is this possible? A: Yes just start the container with `docker-compose run --entrypoint bash tuya`.
 * Q: I want to rebuild my docker-image, even if there are no changes. Is this possible? A: Just start `docker-compose build --no-cache` instead of `docker-compose build`! Don't do this all the time, this is a time consuming process ...

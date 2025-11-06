@@ -10,3 +10,4 @@ services:
         GATEWAY: ${GATEWAY}
     volumes:
       - $LOCALBACKUPDIR:/usr/bin/tuya-convert/backups
+      - ./files:/usr/bin/tuya-convert/files

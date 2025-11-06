@@ -240,7 +240,36 @@ IMPORTANT
 
 ---
 
-### Step 6: Flash Your Device
+### Step 6: Add Custom Firmware (Optional)
+
+The `files/` directory is automatically mounted in the Docker container, making it easy to use custom firmware.
+
+**To add custom firmware:**
+
+```bash
+# Copy your firmware to the files directory
+cp /path/to/custom-firmware.bin files/
+
+# Or download directly
+cd files/
+wget https://example.com/custom-firmware.bin
+cd ..
+```
+
+**Supported firmware files:**
+- Tasmota (included: `tasmota-lite.bin`)
+- ESPurna (included: `espurna-base.bin`)
+- Custom builds (ESPHome, etc.)
+
+**Requirements:**
+- Maximum 512KB for first flash
+- Must include first-stage bootloader
+
+The firmware will automatically appear in the flash menu when you run tuya-convert.
+
+---
+
+### Step 7: Flash Your Device
 
 Follow the same procedure as the [Quick Start Guide](Quick-Start-Guide.md):
 
@@ -249,12 +278,12 @@ Follow the same procedure as the [Quick Start Guide](Quick-Start-Guide.md):
 3. **Press ENTER** in the Docker container terminal
 4. **Wait for device connection** (shows `IoT-device is online with ip 10.42.42.42`)
 5. **Backup completes automatically**
-6. **Select firmware** to flash
+6. **Select firmware** to flash (includes any custom firmware you added)
 7. **Complete!**
 
 ---
 
-### Step 7: Access Backups and Logs
+### Step 8: Access Backups and Logs
 
 After flashing, find your backups in the directory specified by `LOCALBACKUPDIR`:
 
@@ -334,29 +363,23 @@ docker stop [container-id]
 
 ### Custom Firmware
 
-To use custom firmware with Docker:
+The `files/` directory is automatically mounted as a Docker volume, so you can simply add firmware files and they'll be immediately available:
 
-**Option 1: Place in files/ before building**
 ```bash
+# Add your custom firmware
 cp /path/to/custom-firmware.bin files/
-docker-compose build
+
+# Start flashing (no rebuild needed!)
 docker-compose run --rm tuya
 ```
 
-**Option 2: Mount files/ as volume**
+**No image rebuild required!** The files directory is mounted from your host system, so any changes are immediately reflected in the container.
 
-Edit `docker-compose.yml`:
-```yaml
-volumes:
-  - $LOCALBACKUPDIR:/usr/bin/tuya-convert/backups
-  - ./files:/usr/bin/tuya-convert/files  # Add this line
-```
+**Included firmware:**
+- `tasmota-lite.bin` - Tasmota minimal build
+- `espurna-base.bin` - ESPurna base build
 
-Then:
-```bash
-cp /path/to/custom-firmware.bin files/
-docker-compose run --rm tuya
-```
+Your custom firmware will appear in the selection menu alongside these included options
 
 ### Network Configuration
 
@@ -450,6 +473,40 @@ Flash successful but can't find backups on host
 4. **Create directory if missing:**
    ```bash
    mkdir -p ./data/backups
+   ```
+
+### Custom Firmware Not Appearing in Menu
+
+**Symptom:**
+Added firmware to `files/` but it doesn't appear in the flash menu
+
+**Solutions:**
+
+1. **Verify file is in the correct location:**
+   ```bash
+   ls -la files/
+   # Should show your custom firmware file
+   ```
+
+2. **Check file permissions:**
+   ```bash
+   chmod 644 files/your-firmware.bin
+   ```
+
+3. **Verify file size (must be ≤512KB):**
+   ```bash
+   ls -lh files/your-firmware.bin
+   # First flash must be 512KB or smaller
+   ```
+
+4. **Check file extension:**
+   - Must be `.bin` file
+   - Ensure no extra extensions (e.g., `.bin.txt`)
+
+5. **Restart the container:**
+   ```bash
+   # Exit current container and restart
+   docker-compose run --rm tuya
    ```
 
 ### Phone Can't Connect to AP
@@ -607,6 +664,7 @@ rm -rf ./data/backups/
     - Line 6: Host network mode (required for AP)
     - Lines 8-10: Environment variable mapping
     - Line 12: Volume mount for backups
+    - Line 13: Volume mount for custom firmware files
 
 - **Docker Scripts:**
   - `docker/bin/tuya-start` - Container entrypoint
@@ -632,7 +690,7 @@ A: tuya-convert needs to create a WiFi access point and manipulate network inter
 A: No. Each container needs exclusive access to the WiFi adapter. Only run one container at a time.
 
 **Q: How do I update the firmware files in the container?**
-A: Rebuild the image after adding files to the `files/` directory, or mount `files/` as a volume (see Advanced Configuration).
+A: Simply add your firmware files to the `files/` directory - they're automatically available in the container via volume mount. No rebuild required!
 
 **Q: Can I use this with Podman instead of Docker?**
 A: Possibly, but it's untested. Podman's handling of privileged containers and host networking may differ.
