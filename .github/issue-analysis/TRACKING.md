@@ -25,6 +25,7 @@
 | [#1146](https://github.com/ct-Open-Source/tuya-convert/issues/1146) | SC400W won't flash | 📦 Archived | `archived/1146-sc400w-incompatible/` | - | - | Non-ESP chip |
 | [#1153](https://github.com/ct-Open-Source/tuya-convert/issues/1153) | sslpsk3 migration | ✅ Resolved | - | 59549b1 | #10 | Python 3.12+ compat |
 | [#1157](https://github.com/ct-Open-Source/tuya-convert/issues/1157) | Chip incompatibility | 📦 Archived | `archived/1157-chip-incompatible/` | ea46fb1 | #19 | ECR6600 chip (not ESP) |
+| [#1158](https://github.com/ct-Open-Source/tuya-convert/issues/1158) | WiFi IR remote compatibility | 🔍 Investigating | `open/1158-wifi-ir-remote/` | - | - | Support question |
 | [#1159](https://github.com/ct-Open-Source/tuya-convert/issues/1159) | PEP 668 externally managed | ✅ Resolved | `resolved/1159-pep668-duplicate/` | b8a8291 | #9 | Duplicate of #1143 |
 | [#1161](https://github.com/ct-Open-Source/tuya-convert/issues/1161) | Docker files/ mount | ✅ Resolved | - | bb8f12e | #14 | Docker volume fix |
 | [#1162](https://github.com/ct-Open-Source/tuya-convert/issues/1162) | SmartConfig loop | 🔍 Investigating | `open/1162-smartconfig-loop/` | - | - | Device won't connect |
@@ -179,7 +180,38 @@
 
 ---
 
-### 🔍 Investigating (1)
+### 🔍 Investigating (2)
+
+#### #1158: WiFi IR Remote Control with Temperature and Humidity
+- **Status**: 🔍 Investigating (Recommend Archive)
+- **Started**: 2025-11-06
+- **Reporter**: Bgf12 (2025-03-08)
+- **Analysis**: Complete
+- **Files**:
+  - `open/1158-wifi-ir-remote/analysis.md`
+  - `open/1158-wifi-ir-remote/summary.md`
+- **Issue Type**: Support question / Compatibility inquiry
+- **Core Question**: "Does Model S09 WiFi IR remote (with temp/humidity) support tuya-convert?"
+- **Root Cause**: Insufficient information - chip type unknown
+- **Resolution Recommendation**:
+  - Provide user guidance on chip detection methods
+  - Archive as "Support - Compatibility Question"
+  - User must determine chip type (ESP = compatible, others = not)
+- **Detection Methods**:
+  1. Run tuya-convert (safe auto-detection)
+  2. Physical teardown (visual chip inspection)
+  3. Research online (FCC database, teardowns)
+- **Outcome Scenarios**:
+  - ESP-based → Proceed with tuya-convert
+  - Beken BK7231 → Use CloudCutter
+  - Realtek RTL8710 → Use ltchiptool
+  - Other chips → No custom firmware available
+- **Documentation Recommendations**:
+  - Add prominent ESP-only compatibility warning to README
+  - Create COMPATIBILITY.md guide
+  - Enhance "not ESP82xx" error with alternative tool links
+  - Add pre-flash compatibility checklist
+- **Related**: #1146 (SC400W compatibility question), #1157 (ECR6600 incompatibility), #1164 (out of scope device)
 
 #### #1162: Flash process doesn't connect on smart device - repeating: SmartConfig complete. Resending SmartConfig Packets
 - **Status**: 🔍 Investigating
@@ -306,10 +338,10 @@
 
 ## Statistics
 
-- **Total Analyzed**: 13 issues
-- **Resolved**: 8 (62%)
-- **Investigating**: 1 (8%)
-- **Archived**: 4 (31%)
+- **Total Analyzed**: 14 issues
+- **Resolved**: 8 (57%)
+- **Investigating**: 2 (14%)
+- **Archived**: 4 (29%)
 - **Resolution Rate**: 89% (8/9 actionable issues, excluding user errors & hardware incompatibilities)
 
 ---
@@ -323,6 +355,7 @@
 2024-12-07  #1146  SC400W incompatible chip        📦 Archived (Hardware)
 2025-01-04  #1153  sslpsk3 migration                ✅ Resolved
 2025-03-05  #1157  Chip incompatibility             📦 Archived (Hardware)
+2025-03-08  #1158  WiFi IR remote compatibility     🔍 Investigating (Support)
 2025-04-01  #1159  PEP 668 externally managed       ✅ Resolved (Duplicate)
 2025-05-12  #1161  Docker files/ mount              ✅ Resolved
 2025-05-26  #1162  SmartConfig loop                 🔍 Investigating
@@ -354,12 +387,14 @@
 
 **Result**: Multiple installation options (Native on Debian/Arch/Gentoo, Docker, Nix) all fully functional
 
-### Hardware Compatibility / Out of Scope (3 issues)
+### Hardware Compatibility / Out of Scope (4 issues)
 - **#1146**: SC400W with non-ESP chip (likely Beken BK7231 or RTL8710)
 - **#1157**: Non-ESP chip devices (ECR6600 smart plug)
+- **#1158**: WiFi IR remote compatibility (chip type unknown, support question)
 - **#1164**: Video doorbell exploration (ARM SoC, out of scope)
 
 **Result**: Clear documentation that tuya-convert is ESP-only, guidance to alternatives (CloudCutter, ltchiptool)
+**Pattern**: Increasing compatibility questions (~29% of issues) - indicates need for prominent ESP-only warning
 
 ### User Error / Support (1 issue)
 - **#1145**: Device appeared dead after flash (user checking wrong MAC address)
@@ -379,7 +414,7 @@
 - **Python/Dependencies**: #1098, #1143, #1153, #1159, #1162, #1165, #1167
 - **Docker**: #1161
 - **Installation**: #1163, #1165
-- **Hardware/Out of Scope**: #1146, #1157, #1164
+- **Hardware/Out of Scope**: #1146, #1157, #1158, #1164
 - **User Error/Support**: #1145
 
 ### Key Documents
@@ -406,6 +441,7 @@
 - 📦 #1145 - User error documentation (fast power cycle recovery)
 - 📦 #1146 - Non-ESP chip guidance (CloudCutter, ltchiptool alternatives)
 - 📦 #1157 - Alternative methods for non-ESP chips
+- 🔍 #1158 - WiFi IR remote compatibility (recommend archive as support question)
 - 📦 #1164 - Video doorbell guidance (out of scope)
 
 ---
@@ -413,16 +449,17 @@
 ## Notes
 
 ### Next Steps
-1. Continue analyzing remaining open issues (check for newer issues > #1167)
-2. Request diagnostic information from user for #1162 (log files, environment details)
-3. Create PR for #1143 + #1159 (PEP 668 virtual environment support) to upstream
-4. Create PR for #1163 (Nix flake) to upstream
-5. Create PR for #1165 (Gentoo support) to upstream
-6. Create PR for #1167 (venv PATH fix) to upstream
-7. Consider adding post-flash verification guide (based on #1145 learnings)
-8. Consider adding prominent ESP-only compatibility warning to README (based on #1146, #1157)
-9. Consider enhancing non-ESP diagnostic message with alternative tool links
-10. Monitor for new upstream issues to analyze
+1. Respond to #1158 with chip detection guidance, then archive as support question
+2. Continue analyzing remaining open issues (check for gaps and newer issues)
+3. Request diagnostic information from user for #1162 (log files, environment details)
+4. Create PR for #1143 + #1159 (PEP 668 virtual environment support) to upstream
+5. Create PR for #1163 (Nix flake) to upstream
+6. Create PR for #1165 (Gentoo support) to upstream
+7. Create PR for #1167 (venv PATH fix) to upstream
+8. Consider adding post-flash verification guide (based on #1145 learnings)
+9. **Priority**: Add prominent ESP-only compatibility warning to README (based on #1146, #1157, #1158)
+10. Consider enhancing non-ESP diagnostic message with alternative tool links
+11. Monitor for new upstream issues to analyze
 
 ### Lessons Learned
 - **Virtual environments are critical** on modern Linux (PEP 668)
@@ -436,6 +473,7 @@
 - **Non-ESP chip trend accelerating** - most new Tuya devices (2020+) use Beken/RTL, not ESP
 - **ESP-only scope needs prominent documentation** - users need to know before attempting
 - **Alternative tools exist** for non-ESP (CloudCutter, ltchiptool) - link to them prominently
+- **Pre-flash compatibility questions are common** - users want to know before attempting, need FAQ/guide
 
 ### Patterns Observed
 1. Many issues relate to Python environment management in modern Linux
@@ -444,8 +482,9 @@
 4. Hardware incompatibilities need clear documentation upfront
 5. Users often confuse tuya-convert's scope (ESP firmware flashing vs. general Tuya hacking)
 6. Post-flash verification confusion is common (MAC addresses, hostnames, device discovery)
-7. **Increasing non-ESP device reports** (2-3 out of 12 issues) - reflects chip transition trend
+7. **Increasing non-ESP device reports** (4 out of 14 issues: #1146, #1157, #1158, #1164) - reflects chip transition trend
 8. tuya-convert's diagnostic correctly detects non-ESP chips but needs better guidance on alternatives
+9. **Pre-flash compatibility inquiries increasing** - users want guidance before attempting flash
 
 ---
 
