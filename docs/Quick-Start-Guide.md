@@ -89,6 +89,7 @@ sudo ./start_flash.sh
 **Expected Output:**
 ```
 tuya-convert v2.4.5
+Activating Python virtual environment...
 ======================================================
   Starting AP in a screen.....
   Starting web server in a screen
@@ -106,7 +107,7 @@ IMPORTANT
 3. Press ENTER to continue
 ```
 
-> **What's happening:** tuya-convert is setting up a fake WiFi access point called `vtrust-flash` and starting several background services (web server, MQTT broker, discovery service).
+> **What's happening:** tuya-convert is setting up a fake WiFi access point called `vtrust-flash` and starting several background services (web server, MQTT broker, discovery service). The Python virtual environment is automatically activated to ensure all dependencies are available.
 
 ---
 
@@ -445,6 +446,20 @@ In logs: `could not establish sslpsk socket: ('No cipher can be selected.',)`
 **Cause:** OpenSSL version too old (< 1.1.1)
 
 **Solution:** Upgrade to Ubuntu 18.04+ or Debian 10+. See [System Requirements](Failed-attempts-and-tracked-requirements.md).
+
+### "ModuleNotFoundError: No module named 'sslpsk3'" Error
+
+**Symptom:**
+In logs: `ModuleNotFoundError: No module named 'sslpsk3'` or similar import errors
+
+**Cause:** Virtual environment not properly activated (pre-#1167 fix) or corrupted venv
+
+**Solution:**
+1. Update to latest version with issue #1167 fix
+2. Re-run installation: `./install_prereq.sh`
+3. Verify venv: `source venv/bin/activate && python3 -c "import sslpsk3; print('OK')"`
+
+> **Note:** As of the #1167 fix, virtual environments are properly activated in sudo screen sessions. If you still see this error, your installation may be outdated or corrupted.
 
 ---
 
