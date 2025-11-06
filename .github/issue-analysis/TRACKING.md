@@ -20,6 +20,7 @@
 | Issue | Title | Status | Location | Commits | PR | Notes |
 |-------|-------|--------|----------|---------|-----|-------|
 | [#1143](https://github.com/ct-Open-Source/tuya-convert/issues/1143) | PEP 668 compliance | ✅ Resolved | `resolved/1143-pep668-compliance/` | 1663d29 | #17 | Virtual env support |
+| [#1145](https://github.com/ct-Open-Source/tuya-convert/issues/1145) | SP25 dead after flash | 📦 Archived | `archived/1145-sp25-user-error/` | - | - | User error (wrong MAC) |
 | [#1153](https://github.com/ct-Open-Source/tuya-convert/issues/1153) | sslpsk3 migration | ✅ Resolved | - | 59549b1 | #10 | Python 3.12+ compat |
 | [#1157](https://github.com/ct-Open-Source/tuya-convert/issues/1157) | Chip incompatibility | 📦 Archived | `archived/1157-chip-incompatible/` | ea46fb1 | #19 | ECR6600 chip (not ESP) |
 | [#1159](https://github.com/ct-Open-Source/tuya-convert/issues/1159) | PEP 668 externally managed | ✅ Resolved | `resolved/1159-pep668-duplicate/` | b8a8291 | #9 | Duplicate of #1143 |
@@ -170,7 +171,37 @@
 
 ---
 
-### 📦 Archived Issues (2)
+### 📦 Archived Issues (3)
+
+#### #1145: Teckin/Tuya SP25 Plug: dead after post-wifi-reboot
+- **Status**: 📦 Archived (User Error - Self-Resolved)
+- **Date Archived**: 2025-11-06
+- **Date Reported**: 2024-12-05
+- **Reporter**: STR4NG3RdotSH
+- **Reason**: User error - device was working correctly, user was checking wrong MAC address
+- **Files**:
+  - `archived/1145-sp25-user-error/analysis.md`
+  - `archived/1145-sp25-user-error/summary.md`
+- **Device**: Teckin SP25 smart plug (ESP8266-based)
+- **What Happened**:
+  - User successfully flashed device with tasmota-lite.bin
+  - After WiFi config reboot, device appeared "dead"
+  - User performed extensive troubleshooting
+  - Used fast power cycle recovery (6x power reinsertion) to enter config mode
+  - Reconfigured WiFi and rebooted again
+  - Discovered device had been connected all along - was checking wrong MAC address
+- **Outcome**: ✅ Device working perfectly, tuya-convert functioned correctly
+- **Educational Value**:
+  - Documents fast power cycle recovery feature usage
+  - Shows common post-flash verification confusion
+  - Validates Teckin SP25 compatibility with tuya-convert
+  - Demonstrates importance of verifying correct MAC address from logs
+- **Potential Documentation Improvements**:
+  - Add post-flash verification guide
+  - Document fast power cycle recovery feature
+  - Add troubleshooting section for "device appears dead" scenarios
+  - Explain MAC address identification best practices
+- **Related**: Common user confusion pattern, not a software issue
 
 #### #1157: new tuya smart plug 20A convert failed attempt
 - **Status**: 📦 Archived (Hardware Incompatibility)
@@ -210,11 +241,11 @@
 
 ## Statistics
 
-- **Total Analyzed**: 10 issues
-- **Resolved**: 7 (70%)
-- **Investigating**: 1 (10%)
-- **Archived**: 2 (20%)
-- **Resolution Rate**: 88% (7/8 actionable issues)
+- **Total Analyzed**: 11 issues
+- **Resolved**: 7 (64%)
+- **Investigating**: 1 (9%)
+- **Archived**: 3 (27%)
+- **Resolution Rate**: 88% (7/8 actionable issues, excluding user errors)
 
 ---
 
@@ -222,6 +253,7 @@
 
 ```
 2024-11-12  #1143  PEP 668 compliance              ✅ Resolved
+2024-12-05  #1145  SP25 dead after flash           📦 Archived (User error)
 2025-01-04  #1153  sslpsk3 migration                ✅ Resolved
 2025-03-05  #1157  Chip incompatibility             📦 Archived
 2025-04-01  #1159  PEP 668 externally managed       ✅ Resolved (Duplicate)
@@ -260,6 +292,11 @@
 
 **Result**: Clear documentation that tuya-convert is ESP-only, guidance to alternatives
 
+### User Error / Support (1 issue)
+- **#1145**: Device appeared dead after flash (user checking wrong MAC address)
+
+**Result**: Device worked correctly; validates Teckin SP25 compatibility; documents fast power cycle recovery
+
 ---
 
 ## Quick Links
@@ -274,6 +311,7 @@
 - **Docker**: #1161
 - **Installation**: #1163, #1165
 - **Hardware/Out of Scope**: #1157, #1164
+- **User Error/Support**: #1145
 
 ### Key Documents
 - [README.md](README.md) - Guide to this directory
@@ -296,6 +334,7 @@
 - ✅ #1165 - Gentoo Linux support
 
 ### Documented Only (Archived/Out of Scope)
+- 📦 #1145 - User error documentation (fast power cycle recovery)
 - 📦 #1157 - Alternative methods for non-ESP chips
 - 📦 #1164 - Video doorbell guidance (out of scope)
 
@@ -304,13 +343,14 @@
 ## Notes
 
 ### Next Steps
-1. Continue analyzing remaining open issues (#1145, #1146, etc.)
+1. Continue analyzing remaining open issues (#1146, etc.)
 2. Request diagnostic information from user for #1162 (log files, environment details)
 3. Create PR for #1143 + #1159 (PEP 668 virtual environment support) to upstream
 4. Create PR for #1163 (Nix flake) to upstream
 5. Create PR for #1165 (Gentoo support) to upstream
 6. Create PR for #1167 (venv PATH fix) to upstream
-7. Monitor for new upstream issues to analyze
+7. Consider adding post-flash verification guide (based on #1145 learnings)
+8. Monitor for new upstream issues to analyze
 
 ### Lessons Learned
 - **Virtual environments are critical** on modern Linux (PEP 668)
@@ -318,6 +358,9 @@
 - **Screen sessions with sudo** need explicit venv activation
 - **Hardware limitations** (non-ESP chips) should be clearly documented
 - **Multiple installation methods** (Native, Docker, Nix) serve different use cases
+- **User verification errors** common after flashing (wrong MAC address, wrong hostname)
+- **Fast power cycle recovery** is a valuable firmware feature that should be documented
+- **Post-flash verification guide** would reduce false "device dead" reports
 
 ### Patterns Observed
 1. Many issues relate to Python environment management in modern Linux
@@ -325,6 +368,7 @@
 3. Nix offers third option for reproducibility
 4. Hardware incompatibilities need clear documentation upfront
 5. Users often confuse tuya-convert's scope (ESP firmware flashing vs. general Tuya hacking)
+6. Post-flash verification confusion is common (MAC addresses, hostnames, device discovery)
 
 ---
 
