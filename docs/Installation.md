@@ -38,7 +38,27 @@ tuya-convert has been successfully tested on:
 
 ---
 
-## Installation Steps
+## Installation Methods
+
+tuya-convert offers three installation methods:
+
+1. **[Native Installation](#option-1-native-installation-recommended)** (Recommended) - Use your distribution's package manager
+2. **[Docker Installation](Using-Docker.md)** - Fully containerized environment
+3. **[Nix Flake](#option-3-nix-flake-reproducible-environment)** - Reproducible, isolated development environment
+
+### Comparison
+
+| Feature | Native Install | Docker | Nix Flake |
+|---------|----------------|--------|-----------|
+| Setup Speed | ⚡ Fast | 🐢 Slow (image build) | ⚡ Fast (after first time) |
+| System Impact | ⚠️ Modifies system | ✅ None | ✅ None |
+| Reproducibility | ⚠️ Version drift | ✅ Good | ✅ Perfect |
+| Disk Usage | 📊 ~100MB | 📊 ~1GB+ | 📊 ~500MB |
+| Best For | Single device flashing | CI/CD, isolation | Development, NixOS users |
+
+---
+
+## Option 1: Native Installation (Recommended)
 
 ### Step 1: Clone the Repository
 
@@ -116,6 +136,85 @@ which hostapd dnsmasq mosquitto
 If these commands run without errors, your installation is successful.
 
 > **Note:** You don't need to manually activate the virtual environment when running tuya-convert - `start_flash.sh` does this automatically.
+
+---
+
+## Option 3: Nix Flake (Reproducible Environment)
+
+Nix provides a reproducible, isolated development environment without modifying your system packages. This is ideal for developers, NixOS users, and anyone who values reproducibility.
+
+### Benefits
+
+✅ **Reproducible**: Exact same dependencies on every machine
+✅ **Isolated**: No system package modifications
+✅ **Cross-distribution**: Works on any Linux (and macOS)
+✅ **One Command**: `nix develop` installs everything
+✅ **Version Locked**: No "works on my machine" issues
+
+### Quick Start
+
+```bash
+# 1. Install Nix (if not already installed)
+sh <(curl -L https://nixos.org/nix/install) --daemon
+
+# 2. Enable flakes
+mkdir -p ~/.config/nix
+echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+
+# 3. Clone repository
+git clone https://github.com/sfo2001/tuya-convert
+cd tuya-convert
+
+# 4. Enter development environment (installs all dependencies)
+nix develop
+
+# 5. Flash your device
+./start_flash.sh
+```
+
+### First Time Setup
+
+The first `nix develop` will download and install dependencies (~500MB). This takes 5-10 minutes. Subsequent runs are instant because packages are cached.
+
+**You'll see:**
+```
+╔════════════════════════════════════════════════════════════════╗
+║                    🔧 tuya-convert (Nix)                       ║
+╚════════════════════════════════════════════════════════════════╝
+
+✅ Development environment loaded successfully
+📦 Installed dependencies:
+   • Python 3.11.x with packages: paho-mqtt, tornado, pycryptodomex, sslpsk3
+   • System tools: git, iw, dnsmasq, hostapd, mosquitto, screen
+   ...
+```
+
+### Verify Installation
+
+```bash
+# Check Python and packages
+python3 --version
+python3 -c "import sslpsk3; print(f'sslpsk3 {sslpsk3.__version__}')"
+
+# Check system tools
+which dnsmasq hostapd mosquitto
+```
+
+### Exit Environment
+
+```bash
+exit  # Or press Ctrl+D
+```
+
+Your system remains unaffected - all packages are stored in `/nix/store/` and only available within the Nix shell.
+
+### Full Documentation
+
+See **[Using Nix](Using-Nix.md)** for:
+- Detailed setup instructions
+- Troubleshooting
+- Advanced usage (direnv, offline mode, version pinning)
+- How Nix works under the hood
 
 ---
 
@@ -300,6 +399,7 @@ git pull origin main
 
 - [Quick Start Guide](Quick-Start-Guide.md) - First device flash walkthrough
 - [Using Docker](Using-Docker.md) - Alternative Docker-based installation
+- [Using Nix](Using-Nix.md) - Nix flake installation and usage
 - [Using Raspberry Pi](Using-a-Raspberry-Pi.md) - Raspberry Pi specific setup
 - [System Requirements](Failed-attempts-and-tracked-requirements.md) - Detailed compatibility info
 - [Troubleshooting](Troubleshooting.md) - Common issues
