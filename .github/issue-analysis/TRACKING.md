@@ -26,6 +26,7 @@
 | [#1162](https://github.com/ct-Open-Source/tuya-convert/issues/1162) | SmartConfig loop | 🔍 Investigating | `open/1162-smartconfig-loop/` | - | - | Device won't connect |
 | [#1163](https://github.com/ct-Open-Source/tuya-convert/issues/1163) | Nix flake support | ✅ Resolved | `open/1163-nix-flake/` | f78bd4a | - | Reproducible env |
 | [#1164](https://github.com/ct-Open-Source/tuya-convert/issues/1164) | Video doorbell telnet | 📦 Archived | `archived/1164-video-doorbell-telnet/` | - | - | Out of scope |
+| [#1165](https://github.com/ct-Open-Source/tuya-convert/issues/1165) | Gentoo install support | ✅ Resolved | `resolved/1165-gentoo-install/` | 90547b0 | #13 | emerge + venv |
 | [#1167](https://github.com/ct-Open-Source/tuya-convert/issues/1167) | Venv PATH sudo | ✅ Resolved | `resolved/1167-venv-sudo-screen/` | d071bdc, 83db9d2 | - | Screen session venv |
 
 ---
@@ -60,6 +61,27 @@
 - **PR**: #14
 - **Files**: No analysis document (resolved before tracking system)
 - **Impact**: Custom firmware loading in Docker works
+
+#### #1165: No install option for gentoo
+- **Status**: ✅ Resolved
+- **Date Resolved**: 2025-11-05
+- **Solution**: Added complete Gentoo Linux support with emerge package manager and virtual environment
+- **Commits**: 90547b0
+- **PR**: #13
+- **Files**:
+  - `resolved/1165-gentoo-install/analysis.md`
+  - Updated `install_prereq.sh` (added gentooInstall() function)
+  - Updated `README.md` (listed Gentoo as supported)
+- **Impact**: Gentoo users can now use tuya-convert with native package manager support
+- **Technical Details**:
+  - Added gentooInstall() function using emerge package manager
+  - Installs all dependencies with Gentoo package naming (category/package)
+  - Creates Python virtual environment (same as Debian/Arch)
+  - Includes emerge --sync to update Portage tree
+  - Uses --ask --verbose flags (Gentoo best practice)
+  - Refactored to extract setupPythonVenv() shared function (DRY principle)
+- **User Contribution**: rpruen provided implementation attachment
+- **Related**: #1143 (PEP 668 - venv approach), #1167 (venv PATH)
 
 #### #1167: Ubuntu non-docker deps issue (Venv PATH)
 - **Status**: ✅ Resolved
@@ -167,11 +189,11 @@
 
 ## Statistics
 
-- **Total Analyzed**: 8 issues
-- **Resolved**: 5 (63%)
-- **Investigating**: 1 (13%)
-- **Archived**: 2 (25%)
-- **Resolution Rate**: 83% (5/6 actionable issues)
+- **Total Analyzed**: 9 issues
+- **Resolved**: 6 (67%)
+- **Investigating**: 1 (11%)
+- **Archived**: 2 (22%)
+- **Resolution Rate**: 86% (6/7 actionable issues)
 
 ---
 
@@ -185,6 +207,7 @@
 2025-05-26  #1162  SmartConfig loop                 🔍 Investigating
 2025-06-13  #1163  Nix flake support                ✅ Resolved
 2025-06-19  #1164  Video doorbell telnet            📦 Archived
+2025-09-19  #1165  Gentoo install support           ✅ Resolved
 2025-10-15  #1167  Venv PATH sudo screen            ✅ Resolved
 ```
 
@@ -192,19 +215,21 @@
 
 ## Common Themes
 
-### Python Environment Management (4 issues)
+### Python Environment Management (5 issues)
 - **#1143**: PEP 668 compliance → Virtual environment
 - **#1153**: Python 3.12+ compatibility → sslpsk3 migration
 - **#1162**: SmartConfig loop → Likely sslpsk3 (investigation ongoing)
+- **#1165**: Gentoo install → emerge + venv support
 - **#1167**: Venv in sudo screen → PATH preservation
 
-**Result**: Comprehensive virtual environment support with Python 3.12+ compatibility
+**Result**: Comprehensive virtual environment support with Python 3.12+ compatibility across all distributions
 
-### Installation Methods (2 issues)
+### Installation Methods (3 issues)
 - **#1161**: Docker volume mounting → Fixed
 - **#1163**: Nix flake reproducibility → Implemented
+- **#1165**: Gentoo distribution support → Native emerge support
 
-**Result**: Three installation options (Native, Docker, Nix) all fully functional
+**Result**: Multiple installation options (Native on Debian/Arch/Gentoo, Docker, Nix) all fully functional
 
 ### Hardware Compatibility / Out of Scope (2 issues)
 - **#1157**: Non-ESP chip devices (ECR6600 smart plug)
@@ -222,9 +247,9 @@
 - [Archived Issues](archived/) - 📦 Not actionable
 
 ### By Topic
-- **Python/Dependencies**: #1143, #1153, #1162, #1167
+- **Python/Dependencies**: #1143, #1153, #1162, #1165, #1167
 - **Docker**: #1161
-- **Installation**: #1163
+- **Installation**: #1163, #1165
 - **Hardware/Out of Scope**: #1157, #1164
 
 ### Key Documents
@@ -244,6 +269,7 @@
 - ✅ #1143 - Virtual environment support
 - ✅ #1153 - sslpsk3 migration
 - ✅ #1161 - Docker volume fix
+- ✅ #1165 - Gentoo Linux support
 
 ### Documented Only (Archived/Out of Scope)
 - 📦 #1157 - Alternative methods for non-ESP chips
@@ -256,9 +282,10 @@
 ### Next Steps
 1. Request diagnostic information from user for #1162 (log files, environment details)
 2. Create PR for #1163 (Nix flake) to upstream
-3. Create PR for #1167 (venv PATH fix) to upstream
-4. Consider analyzing next open issue (#1165 - Gentoo install support)
+3. Create PR for #1165 (Gentoo support) to upstream
+4. Create PR for #1167 (venv PATH fix) to upstream
 5. Monitor for new upstream issues to analyze
+6. All recent open issues now analyzed!
 
 ### Lessons Learned
 - **Virtual environments are critical** on modern Linux (PEP 668)
