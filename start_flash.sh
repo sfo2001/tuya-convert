@@ -71,14 +71,15 @@ setup () {
 	if [ -d "venv" ]; then
 		echo "Activating Python virtual environment..."
 		source venv/bin/activate
-		# Set VENV_PATH for use in screen sessions (which run with sudo and lose activation)
-		VENV_PATH="$PWD/venv/bin:$PATH"
+		# Export VENV_PATH for use in screen sessions (which run with sudo and lose activation)
+		# CRITICAL: Must export so subprocesses like old_screen_with_log.sh can access it
+		export VENV_PATH="$PWD/venv/bin:$PATH"
 	else
 		echo "WARNING: Virtual environment not found!"
 		echo "Please run ./install_prereq.sh to set up the environment properly."
 		echo "Attempting to continue with system Python packages..."
 		# Fallback to system PATH
-		VENV_PATH="$PATH"
+		export VENV_PATH="$PATH"
 	fi
 
 	pushd scripts >/dev/null || exit
@@ -111,8 +112,9 @@ setup () {
 
 	echo "  Starting web server in a screen"
 	# Fake registration server intercepts device cloud registration
-	# Use env to preserve virtual environment PATH through sudo (see VENV_PATH setup above)
-	$screen_with_log smarthack-web.log -S smarthack-web -m -d env PATH="$VENV_PATH" ./fake-registration-server.py
+	# Explicitly activate venv in screen session to ensure all Python deps are available
+	# This is more robust than PATH manipulation through sudo boundaries
+	$screen_with_log smarthack-web.log -S smarthack-web -m -d bash -c "source $PWD/venv/bin/activate && exec ./fake-registration-server.py"
 
 	echo "  Starting Mosquitto in a screen"
 	# MQTT broker handles device communication protocol
@@ -120,13 +122,14 @@ setup () {
 
 	echo "  Starting PSK frontend in a screen"
 	# PSK (Pre-Shared Key) frontend manages encryption keys
-	# Use env to preserve virtual environment PATH through sudo (see VENV_PATH setup above)
-	$screen_with_log smarthack-psk.log -S smarthack-psk -m -d env PATH="$VENV_PATH" ./psk-frontend.py -v
+	# Explicitly activate venv in screen session to ensure sslpsk3 is available
+	# This is critical as sslpsk3 has no system package equivalent on Ubuntu
+	$screen_with_log smarthack-psk.log -S smarthack-psk -m -d bash -c "source $PWD/venv/bin/activate && exec ./psk-frontend.py -v"
 
 	echo "  Starting Tuya Discovery in a screen"
 	# Discovery service finds and communicates with Tuya devices
-	# Use env to preserve virtual environment PATH through sudo (see VENV_PATH setup above)
-	$screen_with_log smarthack-udp.log -S smarthack-udp -m -d env PATH="$VENV_PATH" ./tuya-discovery.py
+	# Explicitly activate venv in screen session to ensure all Python deps are available
+	$screen_with_log smarthack-udp.log -S smarthack-udp -m -d bash -c "source $PWD/venv/bin/activate && exec ./tuya-discovery.py"
 	echo
 }
 
