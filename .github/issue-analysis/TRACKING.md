@@ -25,6 +25,7 @@
 | [#1161](https://github.com/ct-Open-Source/tuya-convert/issues/1161) | Docker files/ mount | ✅ Resolved | - | bb8f12e | #14 | Docker volume fix |
 | [#1162](https://github.com/ct-Open-Source/tuya-convert/issues/1162) | SmartConfig loop | 🔍 Investigating | `open/1162-smartconfig-loop/` | - | - | Device won't connect |
 | [#1163](https://github.com/ct-Open-Source/tuya-convert/issues/1163) | Nix flake support | ✅ Resolved | `open/1163-nix-flake/` | f78bd4a | - | Reproducible env |
+| [#1164](https://github.com/ct-Open-Source/tuya-convert/issues/1164) | Video doorbell telnet | 📦 Archived | `archived/1164-video-doorbell-telnet/` | - | - | Out of scope |
 | [#1167](https://github.com/ct-Open-Source/tuya-convert/issues/1167) | Venv PATH sudo | ✅ Resolved | `resolved/1167-venv-sudo-screen/` | d071bdc, 83db9d2 | - | Screen session venv |
 
 ---
@@ -126,7 +127,7 @@
 
 ---
 
-### 📦 Archived Issues (1)
+### 📦 Archived Issues (2)
 
 #### #1157: new tuya smart plug 20A convert failed attempt
 - **Status**: 📦 Archived (Hardware Incompatibility)
@@ -140,14 +141,36 @@
 - **Impact**: Documented alternative flashing methods for non-ESP devices
 - **Note**: Not a software issue - requires different hardware flashing approach
 
+#### #1164: video doorbell telnet access
+- **Status**: 📦 Archived (Out of Scope)
+- **Date Archived**: 2025-11-06
+- **Reason**: User already has telnet access to device and wants to explore it - not a tuya-convert use case
+- **Files**: `archived/1164-video-doorbell-telnet/analysis.md`
+- **Device**: Tuya video doorbell with open ports (telnet, FTP, IRC)
+- **Why Archived**:
+  - User already has access (no conversion/flashing needed)
+  - Video doorbells typically use ARM SoCs, not ESP8266/ESP32
+  - Request is for device exploration, not firmware flashing
+  - tuya-convert is specifically for ESP-based firmware flashing via OTA
+- **Guidance Provided**:
+  - How to explore the device via telnet
+  - Alternative resources (HomeAssistant forums, OpenIPC, IoT communities)
+  - Warnings about camera device complexity
+  - Why video doorbells don't work with tuya-convert
+- **Documentation Recommendations**:
+  - Add warning to WiFi Cameras section about chip incompatibility
+  - Create FAQ entry explaining camera/doorbell limitations
+  - Clarify project scope more prominently
+- **Related**: #1157 (similar chip incompatibility issue)
+
 ---
 
 ## Statistics
 
-- **Total Analyzed**: 7 issues
-- **Resolved**: 5 (71%)
-- **Investigating**: 1 (14%)
-- **Archived**: 1 (14%)
+- **Total Analyzed**: 8 issues
+- **Resolved**: 5 (63%)
+- **Investigating**: 1 (13%)
+- **Archived**: 2 (25%)
 - **Resolution Rate**: 83% (5/6 actionable issues)
 
 ---
@@ -161,6 +184,7 @@
 2025-05-12  #1161  Docker files/ mount              ✅ Resolved
 2025-05-26  #1162  SmartConfig loop                 🔍 Investigating
 2025-06-13  #1163  Nix flake support                ✅ Resolved
+2025-06-19  #1164  Video doorbell telnet            📦 Archived
 2025-10-15  #1167  Venv PATH sudo screen            ✅ Resolved
 ```
 
@@ -182,10 +206,11 @@
 
 **Result**: Three installation options (Native, Docker, Nix) all fully functional
 
-### Hardware Compatibility (1 issue)
-- **#1157**: Non-ESP chip devices
+### Hardware Compatibility / Out of Scope (2 issues)
+- **#1157**: Non-ESP chip devices (ECR6600 smart plug)
+- **#1164**: Video doorbell exploration (ARM SoC, out of scope)
 
-**Result**: Documentation of alternatives
+**Result**: Clear documentation that tuya-convert is ESP-only, guidance to alternatives
 
 ---
 
@@ -200,7 +225,7 @@
 - **Python/Dependencies**: #1143, #1153, #1162, #1167
 - **Docker**: #1161
 - **Installation**: #1163
-- **Hardware**: #1157
+- **Hardware/Out of Scope**: #1157, #1164
 
 ### Key Documents
 - [README.md](README.md) - Guide to this directory
@@ -220,8 +245,9 @@
 - ✅ #1153 - sslpsk3 migration
 - ✅ #1161 - Docker volume fix
 
-### Documented Only
+### Documented Only (Archived/Out of Scope)
 - 📦 #1157 - Alternative methods for non-ESP chips
+- 📦 #1164 - Video doorbell guidance (out of scope)
 
 ---
 
@@ -231,8 +257,8 @@
 1. Request diagnostic information from user for #1162 (log files, environment details)
 2. Create PR for #1163 (Nix flake) to upstream
 3. Create PR for #1167 (venv PATH fix) to upstream
-4. Monitor for new upstream issues to analyze
-5. Consider analyzing next open issue (#1164 or #1165)
+4. Consider analyzing next open issue (#1165 - Gentoo install support)
+5. Monitor for new upstream issues to analyze
 
 ### Lessons Learned
 - **Virtual environments are critical** on modern Linux (PEP 668)
@@ -246,6 +272,7 @@
 2. Docker provides alternative but has its own challenges (volume mounting)
 3. Nix offers third option for reproducibility
 4. Hardware incompatibilities need clear documentation upfront
+5. Users often confuse tuya-convert's scope (ESP firmware flashing vs. general Tuya hacking)
 
 ---
 
