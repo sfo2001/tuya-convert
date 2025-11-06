@@ -22,6 +22,7 @@
 | [#1143](https://github.com/ct-Open-Source/tuya-convert/issues/1143) | PEP 668 compliance | ✅ Resolved | `resolved/1143-pep668-compliance/` | 1663d29 | #17 | Virtual env support |
 | [#1153](https://github.com/ct-Open-Source/tuya-convert/issues/1153) | sslpsk3 migration | ✅ Resolved | - | 59549b1 | #10 | Python 3.12+ compat |
 | [#1157](https://github.com/ct-Open-Source/tuya-convert/issues/1157) | Chip incompatibility | 📦 Archived | `archived/1157-chip-incompatible/` | ea46fb1 | #19 | ECR6600 chip (not ESP) |
+| [#1159](https://github.com/ct-Open-Source/tuya-convert/issues/1159) | PEP 668 externally managed | ✅ Resolved | `resolved/1159-pep668-duplicate/` | b8a8291 | #9 | Duplicate of #1143 |
 | [#1161](https://github.com/ct-Open-Source/tuya-convert/issues/1161) | Docker files/ mount | ✅ Resolved | - | bb8f12e | #14 | Docker volume fix |
 | [#1162](https://github.com/ct-Open-Source/tuya-convert/issues/1162) | SmartConfig loop | 🔍 Investigating | `open/1162-smartconfig-loop/` | - | - | Device won't connect |
 | [#1163](https://github.com/ct-Open-Source/tuya-convert/issues/1163) | Nix flake support | ✅ Resolved | `open/1163-nix-flake/` | f78bd4a | - | Reproducible env |
@@ -52,6 +53,26 @@
 - **PR**: #10
 - **Files**: No analysis document (resolved before tracking system)
 - **Impact**: Python 3.12+ compatibility
+
+#### #1159: error: This environment is externally managed
+- **Status**: ✅ Resolved (Duplicate of #1143)
+- **Date Resolved**: 2025-04-01 (reported), resolved by existing venv implementation
+- **Solution**: Same as #1143 - Python virtual environment support for PEP 668 compliance
+- **Commits**: b8a8291 (primary), 90547b0 (refactoring)
+- **PR**: #9
+- **Files**:
+  - `resolved/1159-pep668-duplicate/analysis.md`
+  - `resolved/1159-pep668-duplicate/summary.md`
+  - Same implementation files as #1143 (install_prereq.sh, start_flash.sh, requirements.txt, etc.)
+- **Impact**: Duplicate report of #1143 - validates that PEP 668 issue is widespread
+- **Technical Details**:
+  - Identical error message: "externally-managed-environment"
+  - Identical root cause: System-wide pip install violates PEP 668
+  - Identical solution: Virtual environment support
+  - Identical affected systems: Debian 12+, Ubuntu 23.04+, Arch, Fedora 38+
+- **User Contribution**: ricardopretrazy attempted `--break-system-packages` workaround
+- **Maintainer Response**: Correctly suggested virtual environment solution (already implemented)
+- **Related**: #1143 (primary issue), #1167 (venv PATH), #1153 (sslpsk3 in venv)
 
 #### #1161: Docker Tuya Convert unable to see esphome firmware.bin
 - **Status**: ✅ Resolved
@@ -189,11 +210,11 @@
 
 ## Statistics
 
-- **Total Analyzed**: 9 issues
-- **Resolved**: 6 (67%)
-- **Investigating**: 1 (11%)
-- **Archived**: 2 (22%)
-- **Resolution Rate**: 86% (6/7 actionable issues)
+- **Total Analyzed**: 10 issues
+- **Resolved**: 7 (70%)
+- **Investigating**: 1 (10%)
+- **Archived**: 2 (20%)
+- **Resolution Rate**: 88% (7/8 actionable issues)
 
 ---
 
@@ -203,6 +224,7 @@
 2024-11-12  #1143  PEP 668 compliance              ✅ Resolved
 2025-01-04  #1153  sslpsk3 migration                ✅ Resolved
 2025-03-05  #1157  Chip incompatibility             📦 Archived
+2025-04-01  #1159  PEP 668 externally managed       ✅ Resolved (Duplicate)
 2025-05-12  #1161  Docker files/ mount              ✅ Resolved
 2025-05-26  #1162  SmartConfig loop                 🔍 Investigating
 2025-06-13  #1163  Nix flake support                ✅ Resolved
@@ -215,9 +237,10 @@
 
 ## Common Themes
 
-### Python Environment Management (5 issues)
+### Python Environment Management (6 issues)
 - **#1143**: PEP 668 compliance → Virtual environment
 - **#1153**: Python 3.12+ compatibility → sslpsk3 migration
+- **#1159**: PEP 668 externally managed → Virtual environment (duplicate of #1143)
 - **#1162**: SmartConfig loop → Likely sslpsk3 (investigation ongoing)
 - **#1165**: Gentoo install → emerge + venv support
 - **#1167**: Venv in sudo screen → PATH preservation
@@ -247,7 +270,7 @@
 - [Archived Issues](archived/) - 📦 Not actionable
 
 ### By Topic
-- **Python/Dependencies**: #1143, #1153, #1162, #1165, #1167
+- **Python/Dependencies**: #1143, #1153, #1159, #1162, #1165, #1167
 - **Docker**: #1161
 - **Installation**: #1163, #1165
 - **Hardware/Out of Scope**: #1157, #1164
@@ -268,6 +291,7 @@
 ### Already in Fork
 - ✅ #1143 - Virtual environment support
 - ✅ #1153 - sslpsk3 migration
+- ✅ #1159 - PEP 668 compliance (duplicate of #1143)
 - ✅ #1161 - Docker volume fix
 - ✅ #1165 - Gentoo Linux support
 
@@ -280,12 +304,13 @@
 ## Notes
 
 ### Next Steps
-1. Request diagnostic information from user for #1162 (log files, environment details)
-2. Create PR for #1163 (Nix flake) to upstream
-3. Create PR for #1165 (Gentoo support) to upstream
-4. Create PR for #1167 (venv PATH fix) to upstream
-5. Monitor for new upstream issues to analyze
-6. All recent open issues now analyzed!
+1. Continue analyzing remaining open issues (#1145, #1146, etc.)
+2. Request diagnostic information from user for #1162 (log files, environment details)
+3. Create PR for #1143 + #1159 (PEP 668 virtual environment support) to upstream
+4. Create PR for #1163 (Nix flake) to upstream
+5. Create PR for #1165 (Gentoo support) to upstream
+6. Create PR for #1167 (venv PATH fix) to upstream
+7. Monitor for new upstream issues to analyze
 
 ### Lessons Learned
 - **Virtual environments are critical** on modern Linux (PEP 668)
