@@ -173,16 +173,16 @@ docker-compose build
 ```
 
 **What's happening:**
-- Downloads Alpine Linux 3.13 base image
+- Downloads Alpine Linux 3.19 base image
 - Installs system dependencies (hostapd, dnsmasq, mosquitto, etc.)
-- Installs Python dependencies (paho-mqtt, tornado, sslpsk, pycryptodomex)
+- Installs Python dependencies from requirements.txt (paho-mqtt, tornado, sslpsk3, pycryptodomex)
 - Copies tuya-convert scripts into the image
 - Sets up entrypoint
 
 **Expected output:**
 ```
 Building tuya
-Step 1/7 : FROM alpine:3.13
+Step 1/7 : FROM alpine:3.19
  ---> ...
 Step 2/7 : RUN apk add --update bash git iw dnsmasq ...
  ---> Running in ...
@@ -655,10 +655,10 @@ rm -rf ./data/backups/
 
 - **Docker Configuration:**
   - `Dockerfile` - Image build instructions
-    - Line 1: Base image (Alpine 3.13)
+    - Line 1: Base image (Alpine 3.19)
     - Line 3: System package installation
-    - Line 5: Python package installation
-    - Line 13: Entrypoint configuration
+    - Lines 6-10: Python package installation from requirements.txt
+    - Line 18: Entrypoint configuration
   - `docker-compose.yml` - Service orchestration
     - Line 5: Privileged mode (required for network control)
     - Line 6: Host network mode (required for AP)

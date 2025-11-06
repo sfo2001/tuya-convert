@@ -540,7 +540,7 @@ Tuya has implemented patches:
 - **Linux kernel** with mac80211 wireless stack
 - **hostapd** with AP mode support
 - **dnsmasq** for DHCP/DNS
-- **Python 3** with pycryptodomex, paho-mqtt, tornado, sslpsk
+- **Python 3** with pycryptodomex, paho-mqtt, tornado, sslpsk3
 - **OpenSSL 1.1.1+** for TLS 1.2 PSK ciphers
 - **mosquitto** MQTT broker
 

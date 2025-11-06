@@ -68,11 +68,11 @@ The script will:
 #### For Debian/Ubuntu/Raspberry Pi OS:
 - **System packages:** git, iw, dnsmasq, rfkill, hostapd, screen, curl, build-essential, net-tools, libssl-dev, iproute2, iputils-ping, mosquitto, haveged
 - **Python packages:** python3-pip, python3-setuptools, python3-wheel, python3-dev
-- **Python modules:** paho-mqtt, tornado, sslpsk, pycryptodomex
+- **Python modules:** paho-mqtt, tornado, sslpsk3, pycryptodomex
 
 #### For Arch Linux:
 - **System packages:** git, iw, dnsmasq, hostapd, screen, curl, python-pip, python-wheel, net-tools, openssl, mosquitto, haveged
-- **Python modules:** python-pycryptodomex, python-paho-mqtt, python-tornado, sslpsk
+- **Python modules:** python-pycryptodomex, python-paho-mqtt, python-tornado, sslpsk3
 
 ### Step 3: Wait for Installation to Complete
 
