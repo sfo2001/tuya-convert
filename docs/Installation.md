@@ -60,19 +60,24 @@ The installation script automatically detects your distribution and installs the
 The script will:
 1. Detect your Linux distribution from `/etc/os-release`
 2. Install required system packages
-3. Install Python dependencies
-4. Set up the environment
+3. **Create a Python virtual environment** (`venv/`)
+4. Install Python dependencies into the virtual environment
+5. Set up the environment
+
+> **Note on Virtual Environments:** Modern Linux distributions (Ubuntu 24.04+, Debian 12+) enforce PEP 668, which prevents system-wide pip installations. The installation script creates a virtual environment to comply with this requirement. The virtual environment is automatically activated when you run `start_flash.sh`, and special handling ensures Python scripts launched in sudo screen sessions can access the virtual environment dependencies (see issue #1167).
 
 **What gets installed:**
 
 #### For Debian/Ubuntu/Raspberry Pi OS:
 - **System packages:** git, iw, dnsmasq, rfkill, hostapd, screen, curl, build-essential, net-tools, libssl-dev, iproute2, iputils-ping, mosquitto, haveged
-- **Python packages:** python3-pip, python3-setuptools, python3-wheel, python3-dev
-- **Python modules:** paho-mqtt, tornado, sslpsk3, pycryptodomex
+- **Python packages:** python3-pip, python3-setuptools, python3-wheel, python3-dev, python3-venv
+- **Python modules (in venv):** paho-mqtt, tornado, sslpsk3, pycryptodomex
+
+> **Note:** `sslpsk3` is NOT available as a system package on Ubuntu/Debian, which is why the virtual environment is mandatory for non-Docker installations.
 
 #### For Arch Linux:
 - **System packages:** git, iw, dnsmasq, hostapd, screen, curl, python-pip, python-wheel, net-tools, openssl, mosquitto, haveged
-- **Python modules:** python-pycryptodomex, python-paho-mqtt, python-tornado, sslpsk3
+- **Python modules (in venv):** paho-mqtt, tornado, sslpsk3, pycryptodomex
 
 ### Step 3: Wait for Installation to Complete
 
@@ -80,6 +85,9 @@ The installation process may take several minutes depending on your internet con
 
 ```
 Ready to start upgrade
+
+Python packages have been installed in a virtual environment (venv/)
+The virtual environment will be automatically activated when you run ./start_flash.sh
 ```
 
 When the installation is complete.
@@ -89,14 +97,25 @@ When the installation is complete.
 After installation completes, verify that key components are installed:
 
 ```bash
-# Check Python dependencies
-python3 -c "import paho.mqtt; import tornado; import Cryptodome; print('Python dependencies OK')"
+# Check that virtual environment was created
+ls -la venv/
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Check Python dependencies (inside venv)
+python3 -c "import paho.mqtt; import tornado; import sslpsk3; import Cryptodome; print('✓ Python dependencies OK')"
+
+# Deactivate virtual environment
+deactivate
 
 # Check system tools
 which hostapd dnsmasq mosquitto
 ```
 
 If these commands run without errors, your installation is successful.
+
+> **Note:** You don't need to manually activate the virtual environment when running tuya-convert - `start_flash.sh` does this automatically.
 
 ---
 
@@ -182,6 +201,24 @@ E: Unable to locate package [package-name]
 3. Ensure your distribution is supported
 4. For old distributions (Ubuntu < 18.04), upgrade to a modern version
 
+### Python Module Import Errors (ModuleNotFoundError)
+
+**Symptom:**
+```
+ModuleNotFoundError: No module named 'sslpsk3'
+ModuleNotFoundError: No module named 'tornado'
+```
+
+**Cause:** Virtual environment not activated or Python scripts can't find venv packages
+
+**Solution:**
+1. **If running manually:** Activate venv first with `source venv/bin/activate`
+2. **If running start_flash.sh:** This should not happen - the fix for issue #1167 ensures venv is activated in sudo screen sessions
+3. **If problem persists:** Re-run `./install_prereq.sh` to recreate virtual environment
+4. **Verify venv:** Run `source venv/bin/activate && python3 -c "import sslpsk3; print('OK')"`
+
+> **Technical Note:** As of issue #1167 fix, `start_flash.sh` explicitly activates the virtual environment within each sudo screen session to ensure Python scripts can access dependencies. This is critical for `sslpsk3` which has no system package equivalent.
+
 ### Python SSL/TLS Errors After Installation
 
 **Symptom:**
@@ -194,6 +231,23 @@ could not establish sslpsk socket: ('No cipher can be selected.',)
 **Solution:**
 - Upgrade to Ubuntu 18.04+ or Debian 10+
 - See [System Requirements](Failed-attempts-and-tracked-requirements.md) for detailed information
+
+### "This environment is externally managed" Error (PEP 668)
+
+**Symptom:**
+```
+error: externally-managed-environment
+
+× This environment is externally managed
+╰─> To install Python packages system-wide, try apt install python3-xyz
+```
+
+**Cause:** Modern Linux distributions (Ubuntu 24.04+, Debian 12+) prevent system-wide pip installations
+
+**Solution:**
+✅ **No action needed** - `install_prereq.sh` automatically creates a virtual environment to comply with PEP 668. The virtual environment is activated automatically when you run `start_flash.sh`.
+
+**If you see this error:** You're likely trying to manually install packages. Let the installation script handle it instead.
 
 ### Permission Denied Errors
 
