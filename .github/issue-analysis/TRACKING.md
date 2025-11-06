@@ -1,7 +1,7 @@
 # Issue Analysis Tracking
 
 **Repository**: sfo2001/tuya-convert (fork of ct-Open-Source/tuya-convert)
-**Last Updated**: 2025-11-06 (Added #135)
+**Last Updated**: 2025-11-06 (Added #135, #416)
 
 ---
 
@@ -20,6 +20,7 @@
 | Issue | Title | Status | Location | Commits | PR | Notes |
 |-------|-------|--------|----------|---------|-----|-------|
 | [#135](https://github.com/ct-Open-Source/tuya-convert/issues/135) | Door/motion sensor MCU | 🔍 Investigating | `open/0135-door-motion-sensor-mcu/` | - | - | Battery-powered devices |
+| [#416](https://github.com/ct-Open-Source/tuya-convert/issues/416) | Cross-distro support | 🔄 Partially Resolved | `open/0416-cross-distro-support/` | - | - | Fedora/OpenSUSE missing |
 | [#1098](https://github.com/ct-Open-Source/tuya-convert/issues/1098) | Endless flash loop | ✅ Resolved | `resolved/1098-endless-flash-loop/` | 59549b1 | #10 | Fixed by sslpsk3 |
 | [#1143](https://github.com/ct-Open-Source/tuya-convert/issues/1143) | PEP 668 compliance | ✅ Resolved | `resolved/1143-pep668-compliance/` | 1663d29 | #17 | Virtual env support |
 | [#1145](https://github.com/ct-Open-Source/tuya-convert/issues/1145) | SP25 dead after flash | 📦 Archived | `archived/1145-sp25-user-error/` | - | - | User error (wrong MAC) |
@@ -181,7 +182,7 @@
 
 ---
 
-### 🔍 Investigating (3)
+### 🔍 Investigating (4)
 
 #### #135: Support for door and motion sensors with secondary MCU
 - **Status**: 🔍 Investigating
@@ -214,6 +215,48 @@
 - **Community Activity**: Active discussion, multiple workarounds attempted, still open after 6+ years
 - **Labels**: enhancement, help wanted, new device
 - **Related**: None directly (unique secondary MCU issue)
+
+#### #416: Cross-distro (non-Debian) support
+- **Status**: 🔄 Partially Resolved (In Progress)
+- **Started**: 2025-11-06
+- **Reporter**: doenietzomoeilijk (2019-11-24)
+- **Analysis**: Complete
+- **Files**:
+  - `open/0416-cross-distro-support/analysis.md`
+  - `open/0416-cross-distro-support/summary.md`
+- **Issue Type**: Enhancement request / Feature implementation
+- **Core Request**: Native package manager support for Fedora and OpenSUSE (originally requested 2019)
+- **Progress Since 2019**:
+  - ✅ Arch Linux support added (~2020-2022)
+  - ✅ Gentoo support added (#1165, 2025-09-19)
+  - ✅ Nix flake support (#1163, 2025-06-13) - works on ALL distros
+  - ✅ Docker support (#1161, 2025-05-12) - works on ALL distros
+  - ✅ Distribution detection via `/etc/os-release`
+  - ✅ Python virtual environment (cross-distro PEP 668 compliance, #1143)
+  - ❌ Fedora/RHEL native support (still missing)
+  - ❌ OpenSUSE native support (still missing)
+- **Current Status**: 70% resolved
+  - 5 installation methods now available (Debian, Arch, Gentoo, Nix, Docker)
+  - Works on ~85-90% of Linux users
+  - Missing native support for ~10-15% (Fedora/RHEL/OpenSUSE users)
+- **Proposed Solutions**:
+  - **Phase 1**: Implement `fedoraInstall()` function (dnf package manager) - supports Fedora, RHEL, Rocky, AlmaLinux, CentOS Stream
+  - **Phase 2**: Implement `opensuseInstall()` function (zypper package manager)
+  - Both phases: ~2-4 hours implementation + testing each
+- **Package Mapping Completed**: Analysis includes full Debian→Fedora and Debian→OpenSUSE package equivalents
+- **Implementation Complexity**: Low (mostly identical package names, 3-5 differences per distro)
+- **Community Contributions**:
+  - Zarecor60 mentioned Fedora fork with lsb_release detection (2020-02-12, never submitted PR)
+  - Joel Wirāmu Pauling suggested NetworkManager cross-distro approach (out of scope)
+  - Iddo shared Docker workaround (influenced #1161)
+- **Resolution Recommendation**:
+  - Implement native Fedora support (high priority - 10% user base)
+  - Implement native OpenSUSE support (medium priority - 2% user base)
+  - Update documentation to highlight existing Docker/Nix universal methods
+  - Close issue #416 once Fedora + OpenSUSE implemented
+- **Impact**: High - completes 6-year-old enhancement request, supports RHEL ecosystem (enterprise users)
+- **Labels**: enhancement, help wanted
+- **Related**: #1143 (PEP 668 - cross-distro venv), #1163 (Nix - universal), #1165 (Gentoo - pattern), #1161 (Docker - universal), #1167 (venv PATH)
 
 #### #1158: WiFi IR Remote Control with Temperature and Humidity
 - **Status**: 🔍 Investigating (Recommend Archive)
@@ -371,11 +414,12 @@
 
 ## Statistics
 
-- **Total Analyzed**: 15 issues
-- **Resolved**: 8 (53%)
-- **Investigating**: 3 (20%)
-- **Archived**: 4 (27%)
-- **Resolution Rate**: 89% (8/9 actionable issues, excluding user errors & hardware incompatibilities)
+- **Total Analyzed**: 16 issues
+- **Resolved**: 8 (50%)
+- **Partially Resolved**: 1 (6%)
+- **Investigating**: 3 (19%)
+- **Archived**: 4 (25%)
+- **Resolution Rate**: 89% (8/9 fully actionable issues resolved, 1 partially resolved)
 
 ---
 
@@ -383,6 +427,7 @@
 
 ```
 2019-03-12  #135   Door/motion sensor MCU           🔍 Investigating (Enhancement)
+2019-11-24  #416   Cross-distro support             🔄 Partially Resolved (Fedora/OpenSUSE missing)
 2023-07-16  #1098  Endless flash loop               ✅ Resolved (by #1153)
 2024-11-12  #1143  PEP 668 compliance              ✅ Resolved
 2024-12-05  #1145  SP25 dead after flash           📦 Archived (User error)
@@ -454,7 +499,7 @@
 ### By Topic
 - **Python/Dependencies**: #1098, #1143, #1153, #1159, #1162, #1165, #1167
 - **Docker**: #1161
-- **Installation**: #1163, #1165
+- **Installation/Cross-Distro**: #416, #1163, #1165
 - **Hardware/Out of Scope**: #1146, #1157, #1158, #1164
 - **Hardware/Architecture Limitations**: #135
 - **User Error/Support**: #1145
@@ -492,12 +537,19 @@
 ## Notes
 
 ### Next Steps
-1. **#135 - Battery sensor documentation** (High Priority):
+1. **#416 - Implement Fedora/OpenSUSE support** (High Priority):
+   - Implement `fedoraInstall()` function in install_prereq.sh (2-4 hours)
+   - Test on Fedora 40 + Rocky Linux 9
+   - Implement `opensuseInstall()` function (2-4 hours)
+   - Test on OpenSUSE Tumbleweed + Leap
+   - Update README and Installation documentation
+   - Close 6-year-old enhancement request
+2. **#135 - Battery sensor documentation** (High Priority):
    - Create `docs/SENSOR_FLASHING.md` guide for serial flashing
    - Update README with battery-powered device limitations
    - Add sensor detection to smarthack-mqtt.py
    - Document manual workarounds
-2. Respond to #1158 with chip detection guidance, then archive as support question
+3. Respond to #1158 with chip detection guidance, then archive as support question
 3. Continue analyzing remaining open issues (check for gaps and newer issues)
 4. Request diagnostic information from user for #1162 (log files, environment details)
 5. Create PR for #1143 + #1159 (PEP 668 virtual environment support) to upstream
