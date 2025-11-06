@@ -2,7 +2,7 @@
 
 **Reporter**: doenietzomoeilijk
 **Date Posted**: 2019-11-24
-**Status**: Partially Resolved / In Progress
+**Status**: ✅ Resolved
 **Upstream**: https://github.com/ct-Open-Source/tuya-convert/issues/416
 **Related Issues**: #1143 (PEP 668 - venv), #1163 (Nix flake), #1165 (Gentoo), #1161 (Docker)
 
@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-Issue #416 requested cross-distribution support for tuya-convert beyond Debian-based systems, specifically mentioning Fedora and OpenSUSE. Since 2019, **significant progress** has been made: Arch Linux, Gentoo, Nix, and Docker support have been added, providing installation options for most users. However, **native Fedora and OpenSUSE support remain unimplemented**. The issue is partially resolved with multiple installation paths now available, but the originally requested distributions still lack native package manager integration.
+Issue #416 requested cross-distribution support for tuya-convert beyond Debian-based systems, specifically mentioning Fedora and OpenSUSE. Since 2019, **significant progress** has been made: Arch Linux, Gentoo, Nix, and Docker support have been added. As of **2025-11-06**, **native Fedora/RHEL and OpenSUSE support have been fully implemented**, completing this 6-year-old enhancement request. The issue is now **fully resolved** with native package manager support for 6 major distribution families plus universal Docker and Nix alternatives.
 
 ---
 
@@ -225,18 +225,20 @@ docker-compose up
 | Debian/Ubuntu/Kali/Raspberry Pi OS | Native | ✅ | Original implementation |
 | Arch/Manjaro | Native | ✅ | Native pacman support |
 | Gentoo | Native | ✅ | Native emerge support |
+| **Fedora/RHEL/Rocky/Alma/CentOS Stream** | **Native** | ✅ | **Implemented 2025-11-06** |
+| **OpenSUSE (Leap/Tumbleweed/SLES)** | **Native** | ✅ | **Implemented 2025-11-06** |
 | NixOS + any distro with Nix | Nix flake | ✅ | Universal, reproducible |
 | Any distro with Docker | Docker | ✅ | Containerized approach |
 
-**Achievement**: Users on **5 major distribution families** can now use tuya-convert with **official support**.
+**Achievement**: Users on **6 major distribution families** can now use tuya-convert with **native support**, plus 2 universal alternatives (Nix, Docker).
 
-### ❌ Still Missing (Partially Unresolved)
+### ✅ Issue #416 Fully Resolved (2025-11-06)
 
-| Distribution | Status | Community Interest | Known Forks |
-|--------------|--------|--------------------| ------------|
-| **Fedora** | ❌ Unsupported | Original issue request | Yes (Zarecor60, 2020-02-12) |
-| **OpenSUSE** | ❌ Unsupported | Original issue request | Unknown |
-| **RHEL-based** (Rocky, Alma, CentOS Stream) | ❌ Unsupported | Not mentioned | Unknown |
+| Distribution | Status | Implementation Date |
+|--------------|--------|---------------------|
+| **Fedora** | ✅ Implemented | 2025-11-06 (commit 0f22d62) |
+| **OpenSUSE** | ✅ Implemented | 2025-11-06 (commit 0f22d62) |
+| **RHEL-based** (Rocky, Alma, CentOS Stream) | ✅ Supported via Fedora detection | 2025-11-06 (commit 0f22d62) |
 
 **Impact**: Users on these distributions must use Docker/Nix workaround or manually install dependencies.
 
@@ -622,6 +624,8 @@ source venv/bin/activate && python3 -c "import sslpsk3; print('OK')"
 - **2025-06-13**: Nix flake support added (#1163) - universal cross-distro solution
 - **2025-09-19**: Gentoo support added (#1165) - demonstrates new distro support
 - **2025-11-06**: **Analysis of #416** - 6 years later, significant progress but Fedora/OpenSUSE still missing
+- **2025-11-06**: **Implementation complete** - Fedora/RHEL and OpenSUSE native support added (commit 0f22d62)
+- **2025-11-06**: ✅ **Issue #416 RESOLVED** - All originally requested distributions now supported
 
 ---
 
