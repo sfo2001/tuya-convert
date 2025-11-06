@@ -1,7 +1,7 @@
 # Issue Analysis Tracking
 
 **Repository**: sfo2001/tuya-convert (fork of ct-Open-Source/tuya-convert)
-**Last Updated**: 2025-11-06
+**Last Updated**: 2025-11-06 (Added #135)
 
 ---
 
@@ -19,6 +19,7 @@
 
 | Issue | Title | Status | Location | Commits | PR | Notes |
 |-------|-------|--------|----------|---------|-----|-------|
+| [#135](https://github.com/ct-Open-Source/tuya-convert/issues/135) | Door/motion sensor MCU | 🔍 Investigating | `open/0135-door-motion-sensor-mcu/` | - | - | Battery-powered devices |
 | [#1098](https://github.com/ct-Open-Source/tuya-convert/issues/1098) | Endless flash loop | ✅ Resolved | `resolved/1098-endless-flash-loop/` | 59549b1 | #10 | Fixed by sslpsk3 |
 | [#1143](https://github.com/ct-Open-Source/tuya-convert/issues/1143) | PEP 668 compliance | ✅ Resolved | `resolved/1143-pep668-compliance/` | 1663d29 | #17 | Virtual env support |
 | [#1145](https://github.com/ct-Open-Source/tuya-convert/issues/1145) | SP25 dead after flash | 📦 Archived | `archived/1145-sp25-user-error/` | - | - | User error (wrong MAC) |
@@ -180,7 +181,39 @@
 
 ---
 
-### 🔍 Investigating (2)
+### 🔍 Investigating (3)
+
+#### #135: Support for door and motion sensors with secondary MCU
+- **Status**: 🔍 Investigating
+- **Started**: 2025-11-06
+- **Reporter**: ciscozine (2019-03-12)
+- **Analysis**: Complete
+- **Files**:
+  - `open/0135-door-motion-sensor-mcu/analysis.md`
+  - `open/0135-door-motion-sensor-mcu/summary.md`
+- **Issue Type**: Hardware architecture limitation / Enhancement request
+- **Core Problem**: Battery-powered sensors power down immediately after MQTT connection (power-saving), preventing firmware transfer
+- **Root Cause**: Secondary MCU controls ESP8266 power supply
+  - Device wake cycle: 5-15 seconds (triggered by sensor events)
+  - Firmware transfer time: 30+ seconds
+  - Connection lost before transfer completes
+- **Current Workarounds**:
+  1. Manual keep-awake: Wave magnet repeatedly (30% success, poor UX)
+  2. Serial flashing: Disassemble and flash via UART (95% success, recommended)
+- **Affected Devices**:
+  - Door/window contact sensors
+  - PIR motion detectors
+  - Flood/leak sensors
+  - Any battery-powered Tuya device with aggressive sleep mode
+- **Proposed Solutions**:
+  - **Phase 1 (Immediate)**: Document limitations, provide serial flashing guide
+  - **Phase 2 (Short-term)**: Add sensor detection, display guidance
+  - **Phase 3 (Long-term)**: Research wake-lock protocol, accelerated delivery
+- **Resolution Recommendation**: Document limitations and recommend serial flashing as primary method
+- **Impact**: High - entire device category (battery-powered sensors) unsupported via OTA
+- **Community Activity**: Active discussion, multiple workarounds attempted, still open after 6+ years
+- **Labels**: enhancement, help wanted, new device
+- **Related**: None directly (unique secondary MCU issue)
 
 #### #1158: WiFi IR Remote Control with Temperature and Humidity
 - **Status**: 🔍 Investigating (Recommend Archive)
@@ -338,10 +371,10 @@
 
 ## Statistics
 
-- **Total Analyzed**: 14 issues
-- **Resolved**: 8 (57%)
-- **Investigating**: 2 (14%)
-- **Archived**: 4 (29%)
+- **Total Analyzed**: 15 issues
+- **Resolved**: 8 (53%)
+- **Investigating**: 3 (20%)
+- **Archived**: 4 (27%)
 - **Resolution Rate**: 89% (8/9 actionable issues, excluding user errors & hardware incompatibilities)
 
 ---
@@ -349,6 +382,7 @@
 ## Related Issues Timeline
 
 ```
+2019-03-12  #135   Door/motion sensor MCU           🔍 Investigating (Enhancement)
 2023-07-16  #1098  Endless flash loop               ✅ Resolved (by #1153)
 2024-11-12  #1143  PEP 668 compliance              ✅ Resolved
 2024-12-05  #1145  SP25 dead after flash           📦 Archived (User error)
@@ -401,6 +435,13 @@
 
 **Result**: Device worked correctly; validates Teckin SP25 compatibility; documents fast power cycle recovery
 
+### Hardware/Architecture Limitations & Enhancements (1 issue)
+- **#135**: Battery-powered sensors with secondary MCU → Power management prevents OTA flash
+
+**Result**: Documented hardware limitation; recommended serial flashing as primary method for battery-powered sensors
+**Pattern**: Secondary MCU power control creates timing mismatch (5-15s wake vs 30+ firmware transfer)
+**Impact**: Entire device category (door/window sensors, motion detectors) requires alternative flashing method
+
 ---
 
 ## Quick Links
@@ -415,6 +456,7 @@
 - **Docker**: #1161
 - **Installation**: #1163, #1165
 - **Hardware/Out of Scope**: #1146, #1157, #1158, #1164
+- **Hardware/Architecture Limitations**: #135
 - **User Error/Support**: #1145
 
 ### Key Documents
@@ -438,6 +480,7 @@
 - ✅ #1165 - Gentoo Linux support
 
 ### Documented Only (Archived/Out of Scope)
+- 🔍 #135 - Battery-powered sensor limitation analysis (hardware architecture)
 - 📦 #1145 - User error documentation (fast power cycle recovery)
 - 📦 #1146 - Non-ESP chip guidance (CloudCutter, ltchiptool alternatives)
 - 📦 #1157 - Alternative methods for non-ESP chips
@@ -449,23 +492,31 @@
 ## Notes
 
 ### Next Steps
-1. Respond to #1158 with chip detection guidance, then archive as support question
-2. Continue analyzing remaining open issues (check for gaps and newer issues)
-3. Request diagnostic information from user for #1162 (log files, environment details)
-4. Create PR for #1143 + #1159 (PEP 668 virtual environment support) to upstream
-5. Create PR for #1163 (Nix flake) to upstream
-6. Create PR for #1165 (Gentoo support) to upstream
-7. Create PR for #1167 (venv PATH fix) to upstream
-8. Consider adding post-flash verification guide (based on #1145 learnings)
-9. **Priority**: Add prominent ESP-only compatibility warning to README (based on #1146, #1157, #1158)
-10. Consider enhancing non-ESP diagnostic message with alternative tool links
-11. Monitor for new upstream issues to analyze
+1. **#135 - Battery sensor documentation** (High Priority):
+   - Create `docs/SENSOR_FLASHING.md` guide for serial flashing
+   - Update README with battery-powered device limitations
+   - Add sensor detection to smarthack-mqtt.py
+   - Document manual workarounds
+2. Respond to #1158 with chip detection guidance, then archive as support question
+3. Continue analyzing remaining open issues (check for gaps and newer issues)
+4. Request diagnostic information from user for #1162 (log files, environment details)
+5. Create PR for #1143 + #1159 (PEP 668 virtual environment support) to upstream
+6. Create PR for #1163 (Nix flake) to upstream
+7. Create PR for #1165 (Gentoo support) to upstream
+8. Create PR for #1167 (venv PATH fix) to upstream
+9. Consider adding post-flash verification guide (based on #1145 learnings)
+10. **Priority**: Add prominent ESP-only compatibility warning to README (based on #1146, #1157, #1158)
+11. Consider enhancing non-ESP diagnostic message with alternative tool links
+12. Monitor for new upstream issues to analyze
 
 ### Lessons Learned
 - **Virtual environments are critical** on modern Linux (PEP 668)
 - **Python 3.12+ support** required sslpsk3 migration
 - **Screen sessions with sudo** need explicit venv activation
 - **Hardware limitations** (non-ESP chips) should be clearly documented
+- **Secondary MCU power management** creates fundamental OTA limitations for battery-powered devices (#135)
+- **Device architecture matters** - not all ESP8266 devices can be flashed OTA (power management, wake cycles)
+- **Serial flashing is sometimes necessary** - OTA isn't always possible, need to set expectations
 - **Multiple installation methods** (Native, Docker, Nix) serve different use cases
 - **User verification errors** common after flashing (wrong MAC address, wrong hostname)
 - **Fast power cycle recovery** is a valuable firmware feature that should be documented
@@ -474,6 +525,7 @@
 - **ESP-only scope needs prominent documentation** - users need to know before attempting
 - **Alternative tools exist** for non-ESP (CloudCutter, ltchiptool) - link to them prominently
 - **Pre-flash compatibility questions are common** - users want to know before attempting, need FAQ/guide
+- **Long-term issues deserve periodic review** - #135 open since 2019, still relevant and active
 
 ### Patterns Observed
 1. Many issues relate to Python environment management in modern Linux
