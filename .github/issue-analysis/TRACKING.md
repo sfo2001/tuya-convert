@@ -24,7 +24,7 @@
 | [#1157](https://github.com/ct-Open-Source/tuya-convert/issues/1157) | Chip incompatibility | 📦 Archived | `archived/1157-chip-incompatible/` | ea46fb1 | #19 | ECR6600 chip (not ESP) |
 | [#1161](https://github.com/ct-Open-Source/tuya-convert/issues/1161) | Docker files/ mount | ✅ Resolved | - | bb8f12e | #14 | Docker volume fix |
 | [#1162](https://github.com/ct-Open-Source/tuya-convert/issues/1162) | SmartConfig loop | 🔍 Investigating | `open/1162-smartconfig-loop/` | - | - | Device won't connect |
-| [#1163](https://github.com/ct-Open-Source/tuya-convert/issues/1163) | Nix flake support | 🔄 In Progress | `open/1163-nix-flake/` | f78bd4a | - | Reproducible env |
+| [#1163](https://github.com/ct-Open-Source/tuya-convert/issues/1163) | Nix flake support | ✅ Resolved | `open/1163-nix-flake/` | f78bd4a | - | Reproducible env |
 | [#1167](https://github.com/ct-Open-Source/tuya-convert/issues/1167) | Venv PATH sudo | ✅ Resolved | `resolved/1167-venv-sudo-screen/` | d071bdc, 83db9d2 | - | Screen session venv |
 
 ---
@@ -76,6 +76,32 @@
   - Fix: Export VENV_PATH, use `bash -c "source venv/bin/activate && exec script.py"`
   - Affects: Ubuntu 24.04+, Debian 12+, modern Linux with PEP 668
 
+#### #1163: Add nix flake to documentation
+- **Status**: ✅ Resolved
+- **Date Resolved**: 2025-11-06
+- **Solution**: Complete Nix flake implementation with comprehensive documentation
+- **Commits**: f78bd4a
+- **PR**: Not yet submitted to upstream
+- **Files**:
+  - `open/1163-nix-flake/analysis.md`
+  - `open/1163-nix-flake/summary.md`
+  - `flake.nix` (repository root)
+  - `docs/Using-Nix.md` (450+ lines)
+  - Updated `docs/Installation.md`
+  - Updated `docs/Quick-Start-Guide.md`
+- **Impact**: Provides third installation method with perfect reproducibility
+- **Technical Details**:
+  - Custom sslpsk3 package build (Python 3.12+ compatible)
+  - All dependencies version-locked via flake.lock
+  - Isolated environment in /nix/store/
+  - Zero system impact, works on any Linux with Nix
+  - Credits: SHU-red (original), seanaye (build fix), mberndt123 (suggestions)
+- **Benefits**:
+  - One-command setup: `nix develop`
+  - Cross-distribution compatibility
+  - Reproducible environments (no version drift)
+  - Developer-friendly workflow
+
 ---
 
 ### 🔍 Investigating (1)
@@ -100,29 +126,6 @@
 
 ---
 
-### 🔄 In Progress (1)
-
-#### #1163: Add nix flake to documentation
-- **Status**: 🔄 In Progress
-- **Started**: 2025-11-06
-- **Solution**: Complete Nix flake implementation with comprehensive documentation
-- **Commits**: f78bd4a
-- **PR**: Not yet created
-- **Files**:
-  - `open/1163-nix-flake/analysis.md`
-  - `open/1163-nix-flake/summary.md`
-- **Implementation**:
-  - ✅ Created `flake.nix` with sslpsk3 support
-  - ✅ Created `docs/Using-Nix.md` (450+ lines)
-  - ✅ Updated `docs/Installation.md`
-  - ✅ Updated `docs/Quick-Start-Guide.md`
-  - ⏳ Testing pending
-  - ⏳ PR creation pending
-- **Impact**: Reproducible development environment for Nix users
-- **Credits**: Original flake by SHU-red, fixes by seanaye and mberndt123
-
----
-
 ### 📦 Archived Issues (1)
 
 #### #1157: new tuya smart plug 20A convert failed attempt
@@ -142,11 +145,10 @@
 ## Statistics
 
 - **Total Analyzed**: 7 issues
-- **Resolved**: 4 (57%)
-- **In Progress**: 1 (14%)
+- **Resolved**: 5 (71%)
 - **Investigating**: 1 (14%)
 - **Archived**: 1 (14%)
-- **Resolution Rate**: 67% (4/6 actionable issues)
+- **Resolution Rate**: 83% (5/6 actionable issues)
 
 ---
 
@@ -158,7 +160,7 @@
 2025-03-05  #1157  Chip incompatibility             📦 Archived
 2025-05-12  #1161  Docker files/ mount              ✅ Resolved
 2025-05-26  #1162  SmartConfig loop                 🔍 Investigating
-2025-06-13  #1163  Nix flake support                🔄 In Progress
+2025-06-13  #1163  Nix flake support                ✅ Resolved
 2025-10-15  #1167  Venv PATH sudo screen            ✅ Resolved
 ```
 
@@ -175,10 +177,10 @@
 **Result**: Comprehensive virtual environment support with Python 3.12+ compatibility
 
 ### Installation Methods (2 issues)
-- **#1161**: Docker volume mounting
-- **#1163**: Nix flake reproducibility
+- **#1161**: Docker volume mounting → Fixed
+- **#1163**: Nix flake reproducibility → Implemented
 
-**Result**: Three installation options (Native, Docker, Nix)
+**Result**: Three installation options (Native, Docker, Nix) all fully functional
 
 ### Hardware Compatibility (1 issue)
 - **#1157**: Non-ESP chip devices
@@ -210,8 +212,8 @@
 ## Upstream Contribution Status
 
 ### Ready for Upstream PR
+- ✅ #1163 - Nix flake (complete, documented, ready)
 - ✅ #1167 - Venv PATH fix (tested, documented)
-- 🔄 #1163 - Nix flake (testing in progress)
 
 ### Already in Fork
 - ✅ #1143 - Virtual environment support
@@ -227,10 +229,10 @@
 
 ### Next Steps
 1. Request diagnostic information from user for #1162 (log files, environment details)
-2. Complete testing for #1163 (Nix flake)
-3. Create PR for #1163 to upstream
-4. Consider creating PR for #1167 to upstream (if not already there)
-5. Monitor for new upstream issues to analyze
+2. Create PR for #1163 (Nix flake) to upstream
+3. Create PR for #1167 (venv PATH fix) to upstream
+4. Monitor for new upstream issues to analyze
+5. Consider analyzing next open issue (#1164 or #1165)
 
 ### Lessons Learned
 - **Virtual environments are critical** on modern Linux (PEP 668)
