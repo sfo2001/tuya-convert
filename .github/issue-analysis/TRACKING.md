@@ -19,6 +19,7 @@
 
 | Issue | Title | Status | Location | Commits | PR | Notes |
 |-------|-------|--------|----------|---------|-----|-------|
+| [#1098](https://github.com/ct-Open-Source/tuya-convert/issues/1098) | Endless flash loop | ✅ Resolved | `resolved/1098-endless-flash-loop/` | 59549b1 | #10 | Fixed by sslpsk3 |
 | [#1143](https://github.com/ct-Open-Source/tuya-convert/issues/1143) | PEP 668 compliance | ✅ Resolved | `resolved/1143-pep668-compliance/` | 1663d29 | #17 | Virtual env support |
 | [#1145](https://github.com/ct-Open-Source/tuya-convert/issues/1145) | SP25 dead after flash | 📦 Archived | `archived/1145-sp25-user-error/` | - | - | User error (wrong MAC) |
 | [#1146](https://github.com/ct-Open-Source/tuya-convert/issues/1146) | SC400W won't flash | 📦 Archived | `archived/1146-sc400w-incompatible/` | - | - | Non-ESP chip |
@@ -36,7 +37,35 @@
 
 ## Detailed Status
 
-### ✅ Resolved Issues (4)
+### ✅ Resolved Issues (8)
+
+#### #1098: Failing to flash smart plug that connects, with an endless loop
+- **Status**: ✅ Resolved
+- **Date Resolved**: 2025-01-04 (by sslpsk3 migration for #1153)
+- **Date Reported**: 2023-07-16
+- **Reporter**: AzzieDev
+- **Solution**: Migrated from deprecated sslpsk to sslpsk3 for better SSL cipher support
+- **Commits**: 59549b1 (sslpsk3 migration)
+- **PR**: #10
+- **Files**:
+  - `resolved/1098-endless-flash-loop/analysis.md`
+  - `resolved/1098-endless-flash-loop/summary.md`
+  - Updated `requirements.txt` (sslpsk → sslpsk3)
+  - Updated `scripts/psk-frontend.py` (import changes)
+- **Impact**: Resolves SSL/TLS-PSK handshake failures causing endless loop during device flashing
+- **Technical Details**:
+  - Error: `[SSL: NO_SHARED_CIPHER] no shared cipher`
+  - Device: YTE CZ001 Smart Plug (PSK Identity 02 protocol)
+  - Root cause: Old sslpsk library had limited cipher support, Python 3.12 incompatibility
+  - Fix: sslpsk3 provides better cipher suite support (PSK-AES128-CBC-SHA256)
+  - Same fix resolves #1153 (Python 3.12+ AttributeError)
+- **User Symptoms**:
+  - SmartConfig succeeds (device connects to fake AP)
+  - Initial HTTP/MQTT exchanges work
+  - SSL/TLS-PSK handshake fails repeatedly
+  - Device enters endless loop: blue LED → pink → red → blue
+  - WiFi: repeated connect/disconnect cycles
+- **Related**: #1153 (sslpsk3 - same fix), #1162 (similar symptoms), #430, #1058
 
 #### #1143: install_prereq.sh needs --break-system-packages
 - **Status**: ✅ Resolved
@@ -277,17 +306,18 @@
 
 ## Statistics
 
-- **Total Analyzed**: 12 issues
-- **Resolved**: 7 (58%)
+- **Total Analyzed**: 13 issues
+- **Resolved**: 8 (62%)
 - **Investigating**: 1 (8%)
-- **Archived**: 4 (34%)
-- **Resolution Rate**: 88% (7/8 actionable issues, excluding user errors & hardware incompatibilities)
+- **Archived**: 4 (31%)
+- **Resolution Rate**: 89% (8/9 actionable issues, excluding user errors & hardware incompatibilities)
 
 ---
 
 ## Related Issues Timeline
 
 ```
+2023-07-16  #1098  Endless flash loop               ✅ Resolved (by #1153)
 2024-11-12  #1143  PEP 668 compliance              ✅ Resolved
 2024-12-05  #1145  SP25 dead after flash           📦 Archived (User error)
 2024-12-07  #1146  SC400W incompatible chip        📦 Archived (Hardware)
@@ -306,7 +336,8 @@
 
 ## Common Themes
 
-### Python Environment Management (6 issues)
+### Python Environment Management (7 issues)
+- **#1098**: Endless flash loop → SSL cipher issues with old sslpsk (resolved by sslpsk3)
 - **#1143**: PEP 668 compliance → Virtual environment
 - **#1153**: Python 3.12+ compatibility → sslpsk3 migration
 - **#1159**: PEP 668 externally managed → Virtual environment (duplicate of #1143)
@@ -314,7 +345,7 @@
 - **#1165**: Gentoo install → emerge + venv support
 - **#1167**: Venv in sudo screen → PATH preservation
 
-**Result**: Comprehensive virtual environment support with Python 3.12+ compatibility across all distributions
+**Result**: Comprehensive virtual environment support with Python 3.12+ compatibility across all distributions, modern sslpsk3 resolves SSL/TLS-PSK handshake issues
 
 ### Installation Methods (3 issues)
 - **#1161**: Docker volume mounting → Fixed
@@ -345,7 +376,7 @@
 - [Archived Issues](archived/) - 📦 Not actionable
 
 ### By Topic
-- **Python/Dependencies**: #1143, #1153, #1159, #1162, #1165, #1167
+- **Python/Dependencies**: #1098, #1143, #1153, #1159, #1162, #1165, #1167
 - **Docker**: #1161
 - **Installation**: #1163, #1165
 - **Hardware/Out of Scope**: #1146, #1157, #1164
