@@ -1,6 +1,29 @@
-The following devices are produced by Tuya and can be flashed with third-party firmware. It is recommended that you make a backup of the factory firmware in the event that you need to revert to it should the third-party firmware not function properly with your device.
+# Compatible Devices (HTTP Firmware)
 
-Since [Tasmota](https://github.com/arendst/Tasmota) version 6.4.1.16, the firmware supports [templates](https://tasmota.github.io/docs/Templates/) for configuring unsupported devices. Templates are easily configurable in the web UI. It is recommended to use templates instead of changing `Generic Module (18)` GPIO assignments. [Tasmota Device Templates Repository](https://templates.blakadder.com/) maintains a list of templates for Tasmota as well as a list of unsupported devices (ones without and ESP82xx chip). There are numerous devices based on Tuya Wi-Fi modules. It may not be possible for all of them to work as expected with Tasmota. If you have a new device that does not have an existing template, you may refer to [Configure Unknown Device guide](https://tasmota.github.io/docs/Configuration-Procedure-for-New-Devices/) to configure the device.
+**Last Updated:** 2025-11-06
+**Status:** 🔄 Community Updated
+
+## Overview
+
+This page lists devices produced by Tuya that use HTTP-based firmware and can be flashed with third-party firmware using tuya-convert. The devices are organized by category (Sockets, Lights, Switches, etc.) and include detailed GPIO pin configurations, model information, and compatibility notes.
+
+**Important:** It is recommended that you make a backup of the factory firmware in the event that you need to revert to it should the third-party firmware not function properly with your device.
+
+### About Tasmota Templates
+
+Since [Tasmota](https://github.com/arendst/Tasmota) version 6.4.1.16, the firmware supports [templates](https://tasmota.github.io/docs/Templates/) for configuring unsupported devices. Templates are easily configurable in the web UI. It is recommended to use templates instead of changing `Generic Module (18)` GPIO assignments.
+
+The [Tasmota Device Templates Repository](https://templates.blakadder.com/) maintains a list of templates for Tasmota as well as a list of unsupported devices (ones without an ESP82xx chip). There are numerous devices based on Tuya Wi-Fi modules. It may not be possible for all of them to work as expected with Tasmota. If you have a new device that does not have an existing template, you may refer to the [Configure Unknown Device guide](https://tasmota.github.io/docs/Configuration-Procedure-for-New-Devices/) to configure the device.
+
+## How to Contribute
+
+To add a device to this list:
+1. Successfully flash the device using tuya-convert
+2. Test the device thoroughly with your chosen firmware (e.g., Tasmota)
+3. Document all GPIO pin assignments and device-specific configurations
+4. [Edit this page](https://github.com/sfo2001/tuya-convert/edit/master/docs/Compatible-devices-(HTTP-firmware).md) or [open an issue](https://github.com/sfo2001/tuya-convert/issues) with the device details
+
+## Device Tables
 
 ## Sockets/Multi-sockets
 
@@ -207,3 +230,20 @@ Since [Tasmota](https://github.com/arendst/Tasmota) version 6.4.1.16, the firmwa
 |Vendor|Area|Device Name|Vendors device ID|GPIOs|Notes|2nd MCU|Flash size/mode
 |---------|:--------------:|:-----------:|:---------:|:------------:|:-------------------:|:-----------:|:------------:
 |Akaso|EU|CS300|?|?|?|?|?|
+## Related Pages
+
+- [Compatible Devices Overview](Compatible-devices) - Main device compatibility page
+- [Compatible Devices (HTTPS Firmware)](Compatible-devices-(HTTPS-firmware)) - Devices using HTTPS-based firmware
+- [Troubleshooting](Troubleshooting) - Common issues and solutions
+- [Installation Guide](Installation) - Get started with tuya-convert
+- [Quick Start Guide](Quick-Start-Guide) - Quick reference for flashing devices
+
+## External Resources
+
+- [Tasmota Device Templates Repository](https://templates.blakadder.com/) - Community-maintained device templates
+- [Tasmota Configuration Guide](https://tasmota.github.io/docs/Configuration-Procedure-for-New-Devices/) - Configure unknown devices
+- [Tasmota Documentation](https://tasmota.github.io/docs/) - Complete Tasmota documentation
+
+---
+
+*Need help? [Open an issue](https://github.com/sfo2001/tuya-convert/issues) or check the [Troubleshooting](Troubleshooting) page.*
