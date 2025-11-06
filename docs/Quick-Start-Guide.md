@@ -26,6 +26,9 @@ Before you begin, ensure you have:
 
 ### Software
 - [ ] **tuya-convert installed** - See [Installation Guide](Installation.md)
+  - **Option 1:** Native install (`./install_prereq.sh`)
+  - **Option 2:** Docker (`./start_flash.sh -d`)
+  - **Option 3:** Nix flake (`nix develop`) - See [Using Nix](Using-Nix.md)
 - [ ] **Root/sudo access** on your Linux machine
 - [ ] **Custom firmware binary** (optional - Tasmota included)
 
@@ -83,8 +86,14 @@ Open a terminal and run:
 
 ```bash
 cd tuya-convert
+
+# If using Nix, enter the dev shell first:
+# nix develop
+
 sudo ./start_flash.sh
 ```
+
+> **Note for Nix users:** If you installed using `nix develop`, make sure you're inside the Nix shell before running `start_flash.sh`. The virtual environment will be automatically activated.
 
 **Expected Output:**
 ```
