@@ -41,6 +41,8 @@ These scripts were tested in
 * Debian-based (Debian, Ubuntu, Raspberry Pi OS, Kali, etc.)
 * Arch-based (Arch Linux, Manjaro, etc.)
 * Gentoo Linux
+* Fedora-based (Fedora, RHEL, Rocky Linux, AlmaLinux, CentOS Stream)
+* OpenSUSE (Leap, Tumbleweed, SLES)
 
 Any Linux with a Wifi adapter which can act as an Access Point should also work. Please note that we have tested the Raspberry Pi with clean installations only. If you use your Raspberry Pi for anything else, we recommend using another SD card with a clean installation.
 
@@ -84,13 +86,17 @@ This change addresses [upstream issue #1153](https://github.com/ct-Open-Source/t
 - Ubuntu 20.04 LTS or newer (Python 3.8+)
 - Debian 11 (Bullseye) or newer (Python 3.9+)
 - Raspberry Pi OS (current release, Python 3.9+)
+- Fedora 38+ and RHEL-based distributions (Rocky Linux, AlmaLinux, CentOS Stream)
+- OpenSUSE Leap 15.5+ or Tumbleweed
 - Any modern Linux distribution with Python 3.8+
 
-**⚠️ TESTING NEEDED:** This virtual environment implementation has been tested for basic functionality but requires testing on:
+**⚠️ TESTING NEEDED:** Native package manager support has been implemented for Fedora/RHEL and OpenSUSE distributions. Testing is needed on:
 - Debian 12 (Bookworm)
 - Ubuntu 23.04+ and Ubuntu Server
 - Raspberry Pi OS (latest)
-- Fedora 38+
+- Fedora 40+
+- Rocky Linux 9+
+- OpenSUSE Tumbleweed / Leap 15.5+
 - Other distributions listed in the REQUIREMENTS section
 
 If you test this on any of these systems, please report your results by opening an issue or pull request.

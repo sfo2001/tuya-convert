@@ -44,6 +44,27 @@ gentooInstall() {
 	setupPythonVenv
 }
 
+fedoraInstall() {
+	# Install system dependencies using Fedora's dnf package manager
+	# This also supports RHEL-based distributions (Rocky Linux, AlmaLinux, CentOS Stream)
+	echo "Installing system dependencies..."
+	sudo dnf install -y git iw dnsmasq rfkill hostapd screen curl \
+		gcc make python3-pip python3-setuptools python3-wheel \
+		python3-devel mosquitto haveged net-tools openssl-devel \
+		iproute iputils
+	setupPythonVenv
+}
+
+opensuseInstall() {
+	# Install system dependencies using OpenSUSE's zypper package manager
+	echo "Installing system dependencies..."
+	sudo zypper install -y git iw dnsmasq rfkill hostapd screen curl \
+		gcc make python3-pip python3-devel \
+		mosquitto haveged net-tools libopenssl-devel \
+		iproute2 iputils
+	setupPythonVenv
+}
+
 if [[ -e /etc/os-release ]]; then
 	source /etc/os-release
 else
@@ -57,6 +78,10 @@ elif [[ ${ID} == 'arch' ]] || [[ ${ID_LIKE-} == 'arch' ]]; then
 	archInstall
 elif [[ ${ID} == 'gentoo' ]] || [[ ${ID_LIKE-} == 'gentoo' ]]; then
 	gentooInstall
+elif [[ ${ID} == 'fedora' ]] || [[ ${ID_LIKE-} == *'fedora'* ]] || [[ ${ID_LIKE-} == *'rhel'* ]]; then
+	fedoraInstall
+elif [[ ${ID} == 'opensuse'* ]] || [[ ${ID} == 'sles'* ]] || [[ ${ID_LIKE-} == *'suse'* ]]; then
+	opensuseInstall
 else
 	if [[ -n ${ID_LIKE-} ]]; then
 		printID="${ID}/${ID_LIKE}"
