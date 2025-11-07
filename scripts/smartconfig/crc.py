@@ -7,22 +7,49 @@ Compute 8bit and 32bit CRCs for Tuya communication
 based in part on https://github.com/tuyapi/link
 """
 
+from typing import List
 
-def crc_8_byte(b):
-    r = 0
+try:
+    from .constants import CRC8_INIT, CRC8_POLYNOMIAL
+except ImportError:
+    from constants import CRC8_INIT, CRC8_POLYNOMIAL  # type: ignore[import-not-found]
+
+
+def crc_8_byte(b: int) -> int:
+    """
+    Compute CRC-8 for a single byte.
+
+    Uses the polynomial 0x18 (x^4 + x^3 + 1) with initial value 0x80.
+
+    Args:
+        b: Byte value to compute CRC for
+
+    Returns:
+        CRC-8 value (0-255)
+    """
+    r: int = 0
     for i in range(8):
         if (r ^ b) & 1:
-            r ^= 0x18
+            r ^= CRC8_POLYNOMIAL  # 0x18
             r >>= 1
-            r |= 0x80
+            r |= CRC8_INIT  # 0x80
         else:
             r >>= 1
         b >>= 1
     return r
 
 
-def crc_8(a):
-    r = 0
+def crc_8(a: List[int]) -> int:
+    """
+    Compute CRC-8 for a sequence of bytes.
+
+    Args:
+        a: List of byte values (0-255)
+
+    Returns:
+        CRC-8 checksum (0-255)
+    """
+    r: int = 0
     for b in a:
         r = crc_8_byte(r ^ b)
     return r
@@ -288,8 +315,27 @@ crc_32_table = [
 ]
 
 
-def crc_32(a):
-    r = -1
+def crc_32(a: List[int]) -> int:
+    """
+    Compute CRC-32 for a sequence of bytes using lookup table.
+
+    Uses the standard CRC-32 polynomial (IEEE 802.3) with initial value -1
+    and final XOR with -1.
+
+    Args:
+        a: List of byte values (0-255)
+
+    Returns:
+        CRC-32 checksum as signed 32-bit integer
+    """
+    try:
+        from .constants import CRC32_FINAL_XOR, CRC32_INIT, CRC32_MASK, CRC32_TABLE_INDEX_MASK
+    except ImportError:
+        from constants import CRC32_FINAL_XOR, CRC32_INIT, CRC32_MASK, CRC32_TABLE_INDEX_MASK  # type: ignore[import-not-found]
+
+    r: int = CRC32_INIT  # -1
     for b in a:
-        r = ((r & 0xFFFFFFFF) >> 8) ^ crc_32_table[(r ^ b) & 255]
-    return r ^ -1
+        # Extract table index and look up next CRC value
+        table_index: int = (r ^ b) & CRC32_TABLE_INDEX_MASK  # 255
+        r = ((r & CRC32_MASK) >> 8) ^ crc_32_table[table_index]  # 0xFFFFFFFF
+    return r ^ CRC32_FINAL_XOR  # XOR with -1

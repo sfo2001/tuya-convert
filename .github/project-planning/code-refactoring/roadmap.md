@@ -280,27 +280,32 @@ make test-coverage  # Check overall coverage increase
 - [x] All tests pass (169/170)
 - [x] Coverage: 100%
 
-#### smartconfig/*.py Type Hints
+#### smartconfig/*.py Type Hints ✅ COMPLETED
 
-- [ ] **broadcast.py**
-  - [ ] `encode_broadcast_body(password: str, ssid: str, token_group: str) -> List[int]`
+- [x] **broadcast.py**
+  - [x] `encode_broadcast_body(password: str, ssid: str, token_group: str) -> List[int]`
 
-- [ ] **multicast.py**
-  - [ ] `encode_pw(pw: str) -> List[int]`
-  - [ ] `encode_plain(s: str) -> List[int]`
-  - [ ] `bytes_to_ips(data: List[int], sequence: int) -> List[str]`
-  - [ ] `encode_multicast_body(password: str, ssid: str, token_group: str) -> List[str]`
+- [x] **multicast.py**
+  - [x] `encode_pw(pw: str) -> List[int]`
+  - [x] `encode_plain(s: str) -> List[int]`
+  - [x] `bytes_to_ips(data: List[int], sequence: int) -> List[str]`
+  - [x] `encode_multicast_body(password: str, ssid: str, token_group: str) -> List[str]`
 
-- [ ] **main.py**
-  - [ ] Add type hints to all variables
+- [x] **main.py**
+  - [x] Add type hints to all variables
 
-- [ ] **smartconfig.py**
-  - [ ] `smartconfig(password: str, ssid: str, region: str, token: str, secret: str) -> None`
+- [x] **smartconfig.py**
+  - [x] `smartconfig(password: str, ssid: str, region: str, token: str, secret: str) -> None`
 
-- [ ] Run mypy on entire smartconfig package
-- [ ] All tests pass
+- [x] **crc.py**
+  - [x] `crc_8_byte(b: int) -> int`
+  - [x] `crc_8(a: List[int]) -> int`
+  - [x] `crc_32(a: List[int]) -> int`
 
-**Acceptance Criteria**: ✓ ALL MET
+- [x] Run mypy on entire smartconfig package (0 errors)
+- [x] All tests pass (79/79 for smartconfig modules)
+
+**Acceptance Criteria**: ✅ ALL MET
 - [x] All core functions have type hints (mq_pub_15.py, psk-frontend.py, tuya-discovery.py)
 - [x] Mypy passes with configured settings
 - [x] IDE provides full autocomplete
@@ -321,11 +326,11 @@ make test-coverage  # Check overall coverage increase
 - [x] All tests pass (169/170)
 - [x] Coverage maintained at 90%
 
-**Remaining**: smartconfig package constants (deferred to future phase)
+**Remaining**: smartconfig package constants ✅ COMPLETED (2025-11-07)
 
-#### Create constants.py Module (Deferred)
+#### Create constants.py Module ✅ COMPLETED
 
-- [ ] **Create scripts/smartconfig/constants.py** (Future work)
+- [x] **Create scripts/smartconfig/constants.py**
   ```python
   """
   Constants for Tuya smartconfig protocol.
@@ -375,71 +380,52 @@ make test-coverage  # Check overall coverage increase
   CRC8_INIT = 0x80                  # CRC-8 initial value
   ```
 
-- [ ] **Write tests**: tests/test_constants.py
-  - [ ] Test constants are correct types
-  - [ ] Test constants are immutable
-  - [ ] Test marker values don't overlap incorrectly
-  - [ ] Test timing values are reasonable
+- [x] **Write tests**: tests/test_smartconfig_constants.py ✅
+  - [x] Test constants are correct types (52 tests)
+  - [x] Test constants are immutable
+  - [x] Test marker values don't overlap incorrectly
+  - [x] Test timing values are reasonable
 
-#### Refactor broadcast.py
+#### Refactor broadcast.py ✅ COMPLETED
 
-- [ ] **Import constants**
-  ```python
-  from .constants import (
-      LENGTH_HIGH_NIBBLE_MARKER, LENGTH_LOW_NIBBLE_MARKER,
-      CRC_HIGH_NIBBLE_MARKER, CRC_LOW_NIBBLE_MARKER,
-      DATA_BYTE_MARKER, SEQUENCE_MARKER, CRC_MARKER, NIBBLE_MASK
-  )
-  ```
+- [x] **Import constants** with fallback for direct imports
+- [x] **Replace magic numbers** with named constants
+- [x] Run tests - verify byte-for-byte identical output ✓
+- [x] Run mypy - 0 errors ✓
+- [x] Add comprehensive docstrings
 
-- [ ] **Replace magic numbers**
-  ```python
-  # BEFORE
-  e.append(length >> 4 | 16)
-  e.append(length & 0xF | 32)
-  e.append(length_crc >> 4 | 48)
-  e.append(length_crc & 0xF | 64)
+#### Refactor multicast.py ✅ COMPLETED
 
-  # AFTER
-  e.append((length >> 4) | LENGTH_HIGH_NIBBLE_MARKER)
-  e.append((length & NIBBLE_MASK) | LENGTH_LOW_NIBBLE_MARKER)
-  e.append((length_crc >> 4) | CRC_HIGH_NIBBLE_MARKER)
-  e.append((length_crc & NIBBLE_MASK) | CRC_LOW_NIBBLE_MARKER)
-  ```
+- [x] Import constants with fallback for direct imports
+- [x] Replace hardcoded key with SMARTCONFIG_AES_KEY
+- [x] Replace sequence numbers with named constants
+- [x] Run tests - verify identical output ✓
+- [x] Add comprehensive docstrings
 
-- [ ] Run tests - verify byte-for-byte identical output
-- [ ] Run mypy
-- [ ] Format with black
+#### Refactor smartconfig.py ✅ COMPLETED
 
-#### Refactor multicast.py
+- [x] Import constants with fallback for direct imports
+- [x] Replace GAP with DEFAULT_PACKET_GAP_SECONDS
+- [x] Replace magic numbers 40, 10 with HEADER_REPEAT_COUNT, BODY_REPEAT_COUNT
+- [x] Add comments explaining protocol
+- [x] Run tests - verify identical output ✓
+- [x] Add comprehensive docstrings
 
-- [ ] Import constants
-- [ ] Replace hardcoded key with SMARTCONFIG_AES_KEY
-- [ ] Replace sequence numbers with named constants
-- [ ] Run tests - verify identical output
+#### Refactor crc.py ✅ COMPLETED
 
-#### Refactor smartconfig.py
+- [x] Import constants with fallback for direct imports
+- [x] Replace 0x18, 0x80 with CRC8_POLYNOMIAL, CRC8_INIT
+- [x] Add comments explaining CRC algorithm
+- [x] Run tests - verify identical output ✓
+- [x] Add comprehensive docstrings
 
-- [ ] Import constants
-- [ ] Replace GAP with DEFAULT_PACKET_GAP_SECONDS
-- [ ] Replace magic numbers 40, 10 with HEADER_REPEAT_COUNT, BODY_REPEAT_COUNT
-- [ ] Add comments explaining protocol
-- [ ] Run tests - verify identical output
-
-#### Refactor crc.py
-
-- [ ] Import constants
-- [ ] Replace 0x18, 0x80 with CRC8_POLYNOMIAL, CRC8_INIT
-- [ ] Add comments explaining CRC algorithm
-- [ ] Run tests - verify identical output
-
-**Acceptance Criteria**: ✓ MOSTLY MET (Core modules complete)
+**Acceptance Criteria**: ✅ ALL MET
 - [x] No magic numbers in core modules (mq_pub_15.py, psk-frontend.py, tuya-discovery.py)
 - [x] All constants have descriptive names and inline comments
-- [x] All tests pass (169/170, identical output verified)
+- [x] All tests pass (79/79 smartconfig tests, 221/222 overall)
 - [x] Code readability significantly improved
-- [x] Coverage increased to 90%
-- [ ] smartconfig package constants (deferred to future phase)
+- [x] Coverage maintained at 87%
+- [x] smartconfig package constants ✅ COMPLETED
 
 ---
 
