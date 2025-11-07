@@ -99,8 +99,14 @@ class PskFrontend:
                         s1.shutdown(socket.SHUT_RDWR)
                         s2.shutdown(socket.SHUT_RDWR)
                         self.sessions.remove((s1, s2))
-                except:
-                    self.sessions.remove((s1, s2))
+                except (OSError, ValueError, BrokenPipeError) as e:
+                    # Handle socket errors, connection issues, and session removal errors
+                    print(f"Session error: {e}")
+                    try:
+                        self.sessions.remove((s1, s2))
+                    except ValueError:
+                        # Session already removed
+                        pass
 
 
 def main():
