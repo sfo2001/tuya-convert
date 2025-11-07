@@ -1,0 +1,166 @@
+# pyproject.toml - Configuration for Python tools
+
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tuya-convert"
+version = "2.4.5"
+description = "A WiFi firmware conversion tool for Tuya IoT devices"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "VTRUST", email = ""},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+# ============================================================================
+# Black - Code Formatter
+# ============================================================================
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# ============================================================================
+# isort - Import Sorter
+# ============================================================================
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+skip_gitignore = true
+known_first_party = ["scripts", "smartconfig"]
+
+# ============================================================================
+# mypy - Static Type Checker
+# ============================================================================
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+strict_equality = true
+check_untyped_defs = true
+# Start with these disabled, enable gradually during refactoring
+disallow_untyped_defs = false
+disallow_any_generics = false
+disallow_untyped_calls = false
+
+# Per-module options
+[[tool.mypy.overrides]]
+module = "scripts.fake-registration-server"
+disallow_untyped_defs = true  # This file already has type hints
+
+[[tool.mypy.overrides]]
+module = [
+    "paho.*",
+    "tornado.*",
+    "Cryptodome.*",
+    "sslpsk3.*",
+]
+ignore_missing_imports = true
+
+# ============================================================================
+# pytest - Testing Framework
+# ============================================================================
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=scripts",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# ============================================================================
+# coverage - Code Coverage
+# ============================================================================
+[tool.coverage.run]
+source = ["scripts"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+# ============================================================================
+# pylint - Code Quality Checker
+# ============================================================================
+[tool.pylint.main]
+py-version = "3.8"
+jobs = 0  # Use all available CPUs
+
+[tool.pylint.messages_control]
+max-line-length = 100
+disable = [
+    "C0111",  # missing-docstring (we'll use flake8-docstrings)
+    "R0903",  # too-few-public-methods
+    "R0913",  # too-many-arguments (common in this codebase)
+]
+
+[tool.pylint.format]
+max-line-length = 100
+
+# ============================================================================
+# bandit - Security Linter
+# ============================================================================
+[tool.bandit]
+exclude_dirs = ["tests", "venv", ".venv"]
+skips = [
+    "B404",  # import subprocess - we need this
+    "B603",  # subprocess without shell=True - this is intentional
+]

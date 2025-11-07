@@ -1,0 +1,37 @@
+# Development dependencies for tuya-convert
+#
+# These packages are used for testing, linting, and code quality:
+# - pytest: Testing framework
+# - pytest-cov: Code coverage for tests
+# - black: Code formatter
+# - isort: Import sorter
+# - flake8: Style guide enforcement
+# - mypy: Static type checker
+# - pylint: Code quality checker
+# - bandit: Security linter
+#
+# Installation:
+#   pip install -r requirements-dev.txt
+#
+# Note: Install production requirements first:
+#   pip install -r requirements.txt
+
+# Core runtime dependencies
+-r requirements.txt
+
+# Testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Code formatting
+black>=23.0.0
+isort>=5.12.0
+
+# Linting
+flake8>=6.0.0
+flake8-docstrings>=1.7.0
+mypy>=1.0.0
+
+# Code quality
+pylint>=2.17.0
+bandit>=1.7.5

@@ -20,9 +20,10 @@ Created by nano on 2018-11-22.
 Copyright (c) 2018 VTRUST. All rights reserved.
 """
 
-from typing import Dict, Optional, Any, Union
-import tornado.web
+from typing import Any, Dict, Optional, Union
+
 import tornado.locks
+import tornado.web
 from tornado.options import define, options, parse_command_line
 
 define("port", default=80, help="run on the given port", type=int)
@@ -32,105 +33,61 @@ define("secKey", default="0000000000000000", help="key used for encrypted commun
 
 import os
 import signal
+import subprocess
+import threading
 from types import FrameType
 
-def exit_cleanly(signum: int, frame: Optional[FrameType]) -> None:
-	"""
-	Handle SIGINT signal for clean server shutdown.
 
-	Args:
-		signum: Signal number received
-		frame: Current stack frame at the time of signal
-	"""
-	print("Received SIGINT, exiting...")
-	exit(0)
+def exit_cleanly(signum: int, frame: Optional[FrameType]) -> None:
+    """
+    Handle SIGINT signal for clean server shutdown.
+
+    Args:
+            signum: Signal number received
+            frame: Current stack frame at the time of signal
+    """
+    print("Received SIGINT, exiting...")
+    exit(0)
+
 
 signal.signal(signal.SIGINT, exit_cleanly)
 
-from Cryptodome.Cipher import AES
-
-def pad(s: str) -> str:
-	"""
-	Apply PKCS#7 padding to a string to make it a multiple of 16 bytes.
-
-	Args:
-		s: String to pad
-
-	Returns:
-		Padded string with length as multiple of 16 bytes
-	"""
-	padding_length = 16 - len(s) % 16
-	return s + padding_length * chr(padding_length)
-
-def unpad(s: str) -> str:
-	"""
-	Remove PKCS#7 padding from a string.
-
-	Args:
-		s: Padded string
-
-	Returns:
-		Original unpadded string
-	"""
-	return s[:-ord(s[len(s) - 1:])]
-
-def encrypt(msg: str, key: bytes) -> bytes:
-	"""
-	Encrypt a message using AES-ECB mode with PKCS#7 padding.
-
-	Args:
-		msg: Plain text message to encrypt
-		key: AES encryption key (must be 16 bytes)
-
-	Returns:
-		Encrypted message as bytes
-	"""
-	return AES.new(key, AES.MODE_ECB).encrypt(pad(msg).encode())
-
-def decrypt(msg: bytes, key: bytes) -> str:
-	"""
-	Decrypt a message using AES-ECB mode and remove PKCS#7 padding.
-
-	Args:
-		msg: Encrypted message bytes
-		key: AES decryption key (must be 16 bytes)
-
-	Returns:
-		Decrypted plain text string
-	"""
-	return unpad(AES.new(key, AES.MODE_ECB).decrypt(msg)).decode()
-
-from base64 import b64encode
+import binascii
 import hashlib
 import hmac
-import binascii
-
 import json
+from base64 import b64encode
+
+# Import shared cryptographic utilities
+from crypto_utils import decrypt, encrypt, pad, unpad
+
 
 def jsonstr(j: Union[Dict, list, Any]) -> str:
-	"""
-	Convert a Python object to a compact JSON string.
+    """
+    Convert a Python object to a compact JSON string.
 
-	Args:
-		j: Python object (dict, list, etc.) to serialize
+    Args:
+            j: Python object (dict, list, etc.) to serialize
 
-	Returns:
-		Compact JSON string without extra whitespace
-	"""
-	return json.dumps(j, separators=(',', ':'))
+    Returns:
+            Compact JSON string without extra whitespace
+    """
+    return json.dumps(j, separators=(",", ":"))
+
 
 def file_as_bytes(file_name: str) -> bytes:
-	"""
-	Read a file and return its contents as bytes.
+    """
+    Read a file and return its contents as bytes.
 
-	Args:
-		file_name: Path to the file to read
+    Args:
+            file_name: Path to the file to read
 
-	Returns:
-		File contents as bytes
-	"""
-	with open(file_name, 'rb') as file:
-		return file.read()
+    Returns:
+            File contents as bytes
+    """
+    with open(file_name, "rb") as file:
+        return file.read()
+
 
 # Global variables storing firmware file metadata
 # These are calculated once at startup and used for upgrade responses
@@ -139,343 +96,367 @@ file_sha256: str = ""  # SHA256 hash of the firmware file
 file_hmac: str = ""  # HMAC signature of the SHA256 hash
 file_len: str = ""  # Size of the firmware file in bytes
 
+
 def get_file_stats(file_name: str) -> None:
-	"""
-	Calculate and store cryptographic hashes and size of the firmware file.
+    """
+    Calculate and store cryptographic hashes and size of the firmware file.
 
-	This function populates global variables with MD5, SHA256, HMAC, and file size
-	information for the firmware upgrade file. These values are used in upgrade
-	endpoint responses to allow devices to verify firmware integrity.
+    This function populates global variables with MD5, SHA256, HMAC, and file size
+    information for the firmware upgrade file. These values are used in upgrade
+    endpoint responses to allow devices to verify firmware integrity.
 
-	Args:
-		file_name: Path to the firmware file to analyze
+    Args:
+            file_name: Path to the firmware file to analyze
 
-	Side Effects:
-		Updates global variables: file_md5, file_sha256, file_hmac, file_len
-	"""
-	global file_md5
-	global file_sha256
-	global file_hmac
-	global file_len
-	file = file_as_bytes(file_name)
-	file_md5 = hashlib.md5(file).hexdigest()
-	file_sha256 = hashlib.sha256(file).hexdigest().upper()
-	file_hmac = hmac.HMAC(options.secKey.encode(), file_sha256.encode(), 'sha256').hexdigest().upper()
-	file_len = str(os.path.getsize(file_name))
+    Side Effects:
+            Updates global variables: file_md5, file_sha256, file_hmac, file_len
+    """
+    global file_md5
+    global file_sha256
+    global file_hmac
+    global file_len
+    file = file_as_bytes(file_name)
+    file_md5 = hashlib.md5(file).hexdigest()
+    file_sha256 = hashlib.sha256(file).hexdigest().upper()
+    file_hmac = (
+        hmac.HMAC(options.secKey.encode(), file_sha256.encode(), "sha256").hexdigest().upper()
+    )
+    file_len = str(os.path.getsize(file_name))
+
 
 from time import time
 
-def timestamp() -> int:
-	"""
-	Get current Unix timestamp as an integer.
 
-	Returns:
-		Current time as seconds since epoch (January 1, 1970)
-	"""
-	return int(time())
+def timestamp() -> int:
+    """
+    Get current Unix timestamp as an integer.
+
+    Returns:
+            Current time as seconds since epoch (January 1, 1970)
+    """
+    return int(time())
+
 
 class FilesHandler(tornado.web.StaticFileHandler):
-	"""
-	Custom static file handler that serves firmware files with automatic index.html fallback.
+    """
+    Custom static file handler that serves firmware files with automatic index.html fallback.
 
-	This handler serves files from the ../files/ directory and automatically serves
-	index.html when the URL path is empty or ends with a slash.
-	"""
+    This handler serves files from the ../files/ directory and automatically serves
+    index.html when the URL path is empty or ends with a slash.
+    """
 
-	def parse_url_path(self, url_path: str) -> str:
-		"""
-		Parse and modify the URL path to add index.html for directory requests.
+    def parse_url_path(self, url_path: str) -> str:
+        """
+        Parse and modify the URL path to add index.html for directory requests.
 
-		Args:
-			url_path: The requested URL path
+        Args:
+                url_path: The requested URL path
 
-		Returns:
-			Modified URL path with index.html appended if needed
-		"""
-		if not url_path or url_path.endswith('/'):
-			url_path = url_path + str('index.html')
-		return url_path
+        Returns:
+                Modified URL path with index.html appended if needed
+        """
+        if not url_path or url_path.endswith("/"):
+            url_path = url_path + str("index.html")
+        return url_path
+
 
 class MainHandler(tornado.web.RequestHandler):
-	"""
-	Handler for the root endpoint that displays a simple connection confirmation.
-	"""
+    """
+    Handler for the root endpoint that displays a simple connection confirmation.
+    """
 
-	def get(self) -> None:
-		"""
-		Handle GET requests to the root endpoint.
+    def get(self) -> None:
+        """
+        Handle GET requests to the root endpoint.
 
-		Sends a simple text response confirming connection to the fake server.
-		"""
-		self.write("You are connected to vtrust-flash")
+        Sends a simple text response confirming connection to the fake server.
+        """
+        self.write("You are connected to vtrust-flash")
+
 
 class JSONHandler(tornado.web.RequestHandler):
-	"""
-	Main request handler for Tuya API endpoints.
+    """
+    Main request handler for Tuya API endpoints.
 
-	This handler processes all device registration, activation, and firmware upgrade
-	requests. It supports both encrypted (protocol 2.2) and unencrypted (protocol 2.1)
-	communication modes.
+    This handler processes all device registration, activation, and firmware upgrade
+    requests. It supports both encrypted (protocol 2.2) and unencrypted (protocol 2.1)
+    communication modes.
 
-	Attributes:
-		activated_ids: Dictionary tracking which gateway IDs have been activated to
-		              determine schema complexity in responses
-	"""
-	activated_ids: Dict[str, bool] = {}
+    Attributes:
+            activated_ids: Dictionary tracking which gateway IDs have been activated to
+                          determine schema complexity in responses
+    """
 
-	def get(self) -> None:
-		"""
-		Handle GET requests by delegating to the POST handler.
+    activated_ids: Dict[str, bool] = {}
 
-		Some Tuya devices may send GET requests to endpoints, so we redirect
-		them to use the same logic as POST requests.
-		"""
-		self.post()
+    def get(self) -> None:
+        """
+        Handle GET requests by delegating to the POST handler.
 
-	def reply(self, result: Optional[Union[Dict, bool, Any]] = None, encrypted: bool = False) -> None:
-		"""
-		Send a JSON response to the device with optional encryption.
+        Some Tuya devices may send GET requests to endpoints, so we redirect
+        them to use the same logic as POST requests.
+        """
+        self.post()
 
-		For encrypted responses (protocol 2.2), the result is encrypted with AES and
-		signed with MD5. For unencrypted responses (protocol 2.1), the result is
-		returned in plain JSON.
+    def reply(
+        self, result: Optional[Union[Dict, bool, Any]] = None, encrypted: bool = False
+    ) -> None:
+        """
+        Send a JSON response to the device with optional encryption.
 
-		Args:
-			result: Response data to send (dict, bool, or None)
-			encrypted: Whether to use encrypted protocol (2.2) or plain (2.1)
+        For encrypted responses (protocol 2.2), the result is encrypted with AES and
+        signed with MD5. For unencrypted responses (protocol 2.1), the result is
+        returned in plain JSON.
 
-		Side Effects:
-			Sends HTTP response with appropriate headers and JSON body
-		"""
-		ts = timestamp()
-		if encrypted:
-			answer = {
-				'result': result,
-				't': ts,
-				'success': True }
-			answer = jsonstr(answer)
-			payload = b64encode(encrypt(answer, options.secKey.encode())).decode()
-			signature = "result=%s||t=%d||%s" % (payload, ts, options.secKey)
-			signature = hashlib.md5(signature.encode()).hexdigest()[8:24]
-			answer = {
-				'result': payload,
-				't': ts,
-				'sign': signature }
-		else:
-			answer = {
-				't': ts,
-				'e': False,
-				'success': True }
-			if result:
-				answer['result'] = result
-		answer = jsonstr(answer)
-		self.set_header("Content-Type", "application/json;charset=UTF-8")
-		self.set_header('Content-Length', str(len(answer)))
-		self.set_header('Content-Language', 'zh-CN')
-		self.write(answer)
-		print("reply", answer)
+        Args:
+                result: Response data to send (dict, bool, or None)
+                encrypted: Whether to use encrypted protocol (2.2) or plain (2.1)
 
-	def post(self) -> None:
-		"""
-		Handle POST requests to Tuya API endpoints.
+        Side Effects:
+                Sends HTTP response with appropriate headers and JSON body
+        """
+        ts = timestamp()
+        if encrypted:
+            answer = {"result": result, "t": ts, "success": True}
+            answer = jsonstr(answer)
+            payload = b64encode(encrypt(answer, options.secKey.encode())).decode()
+            signature = "result=%s||t=%d||%s" % (payload, ts, options.secKey)
+            signature = hashlib.md5(signature.encode()).hexdigest()[8:24]
+            answer = {"result": payload, "t": ts, "sign": signature}
+        else:
+            answer = {"t": ts, "e": False, "success": True}
+            if result:
+                answer["result"] = result
+        answer = jsonstr(answer)
+        self.set_header("Content-Type", "application/json;charset=UTF-8")
+        self.set_header("Content-Length", str(len(answer)))
+        self.set_header("Content-Language", "zh-CN")
+        self.write(answer)
+        print("reply", answer)
 
-		This method processes all device API requests including:
-		- Token retrieval (s.gw.token.get)
-		- Device activation (.active endpoints)
-		- Firmware upgrade checks and downloads (.upgrade endpoints)
-		- Log submission (.log)
-		- Timer configuration (.timer)
-		- Dynamic configuration (.config.get)
+    def post(self) -> None:
+        """
+        Handle POST requests to Tuya API endpoints.
 
-		The method extracts request parameters, attempts to decrypt the payload if
-		encrypted, and routes to the appropriate response handler based on the 'a'
-		(action) parameter.
+        This method processes all device API requests including:
+        - Token retrieval (s.gw.token.get)
+        - Device activation (.active endpoints)
+        - Firmware upgrade checks and downloads (.upgrade endpoints)
+        - Log submission (.log)
+        - Timer configuration (.timer)
+        - Dynamic configuration (.config.get)
 
-		Request Parameters:
-			a: API action/endpoint being called
-			et: Encryption type (1 for encrypted, 0 for plain)
-			gwId: Gateway device ID
+        The method extracts request parameters, attempts to decrypt the payload if
+        encrypted, and routes to the appropriate response handler based on the 'a'
+        (action) parameter.
 
-		Side Effects:
-			- Prints request details and payload to console
-			- Triggers firmware upgrade via mq_pub_15.py after activation
-			- Kills smartconfig process after token retrieval
-		"""
-		uri = str(self.request.uri)
-		a = str(self.get_argument('a', 0))
-		encrypted = str(self.get_argument('et', 0)) == '1'
-		gwId = str(self.get_argument('gwId', 0))
-		payload = self.request.body[5:]
-		print()
-		print(self.request.method, uri)
-		print(self.request.headers)
-		if payload:
-			try:
-				decrypted_payload = decrypt(binascii.unhexlify(payload), options.secKey.encode())
-				if decrypted_payload[0] != "{":
-					raise ValueError("payload is not JSON")
-				print("payload", decrypted_payload)
-			except:
-				print("payload", payload.decode())
+        Request Parameters:
+                a: API action/endpoint being called
+                et: Encryption type (1 for encrypted, 0 for plain)
+                gwId: Gateway device ID
 
-		if gwId == "0":
-			print("WARNING: it appears this device does not use an ESP82xx and therefore cannot install ESP based firmware")
+        Side Effects:
+                - Prints request details and payload to console
+                - Triggers firmware upgrade via mq_pub_15.py after activation
+                - Kills smartconfig process after token retrieval
+        """
+        uri = str(self.request.uri)
+        a = str(self.get_argument("a", 0))
+        encrypted = str(self.get_argument("et", 0)) == "1"
+        gwId = str(self.get_argument("gwId", 0))
+        payload = self.request.body[5:]
+        print()
+        print(self.request.method, uri)
+        print(self.request.headers)
+        if payload:
+            try:
+                decrypted_payload = decrypt(binascii.unhexlify(payload), options.secKey.encode())
+                if decrypted_payload[0] != "{":
+                    raise ValueError("payload is not JSON")
+                print("payload", decrypted_payload)
+            except (binascii.Error, ValueError, UnicodeDecodeError) as e:
+                # Failed to decrypt or decode payload - log error and display raw payload
+                print(f"Failed to decrypt payload: {e}")
+                print("payload", payload.decode())
 
-		# Activation endpoints
-		if(a == "s.gw.token.get"):
-			print("Answer s.gw.token.get")
-			answer = {
-				"gwApiUrl": "http://" + options.addr + "/gw.json",
-				"stdTimeZone": "-05:00",
-				"mqttRanges": "",
-				"timeZone": "-05:00",
-				"httpsPSKUrl": "https://" + options.addr + "/gw.json",
-				"mediaMqttUrl": options.addr,
-				"gwMqttUrl": options.addr,
-				"dstIntervals": [] }
-			if encrypted:
-				answer["mqttsUrl"] = options.addr
-				answer["mqttsPSKUrl"] = options.addr
-				answer["mediaMqttsUrl"] = options.addr
-				answer["aispeech"] = options.addr
-			self.reply(answer)
-			os.system("pkill -f smartconfig/main.py")
+        if gwId == "0":
+            print(
+                "WARNING: it appears this device does not use an ESP82xx and therefore cannot install ESP based firmware"
+            )
 
-		elif(".active" in a):
-			print("Answer s.gw.dev.pk.active")
-			# first try extended schema, otherwise minimal schema
-			schema_key_count = 1 if gwId in self.activated_ids else 20
-			# record that this gwId has been seen
-			self.activated_ids[gwId] = True
-			schema = jsonstr([
-				{"mode":"rw","property":{"type":"bool"},"id":1,"type":"obj"}] * schema_key_count)
-			answer = {
-				"schema": schema,
-				"uid": "00000000000000000000",
-				"devEtag": "0000000000",
-				"secKey": options.secKey,
-				"schemaId": "0000000000",
-				"localKey": "0000000000000000" }
-			self.reply(answer)
-			print("TRIGGER UPGRADE IN 10 SECONDS")
-			protocol = "2.2" if encrypted else "2.1"
-			os.system("sleep 10 && ./mq_pub_15.py -i %s -p %s &" % (gwId, protocol))
+        # Activation endpoints
+        if a == "s.gw.token.get":
+            print("Answer s.gw.token.get")
+            answer = {
+                "gwApiUrl": "http://" + options.addr + "/gw.json",
+                "stdTimeZone": "-05:00",
+                "mqttRanges": "",
+                "timeZone": "-05:00",
+                "httpsPSKUrl": "https://" + options.addr + "/gw.json",
+                "mediaMqttUrl": options.addr,
+                "gwMqttUrl": options.addr,
+                "dstIntervals": [],
+            }
+            if encrypted:
+                answer["mqttsUrl"] = options.addr
+                answer["mqttsPSKUrl"] = options.addr
+                answer["mediaMqttsUrl"] = options.addr
+                answer["aispeech"] = options.addr
+            self.reply(answer)
+            # Kill smartconfig process using subprocess (safer than os.system)
+            subprocess.run(["pkill", "-f", "smartconfig/main.py"], check=False)
 
-		# Upgrade endpoints
-		elif(".updatestatus" in a):
-			print("Answer s.gw.upgrade.updatestatus")
-			self.reply(None, encrypted)
+        elif ".active" in a:
+            print("Answer s.gw.dev.pk.active")
+            # first try extended schema, otherwise minimal schema
+            schema_key_count = 1 if gwId in self.activated_ids else 20
+            # record that this gwId has been seen
+            self.activated_ids[gwId] = True
+            schema = jsonstr(
+                [{"mode": "rw", "property": {"type": "bool"}, "id": 1, "type": "obj"}]
+                * schema_key_count
+            )
+            answer = {
+                "schema": schema,
+                "uid": "00000000000000000000",
+                "devEtag": "0000000000",
+                "secKey": options.secKey,
+                "schemaId": "0000000000",
+                "localKey": "0000000000000000",
+            }
+            self.reply(answer)
+            print("TRIGGER UPGRADE IN 10 SECONDS")
+            protocol = "2.2" if encrypted else "2.1"
 
-		elif(".upgrade" in a) and encrypted:
-			print("Answer s.gw.upgrade.get")
-			answer = {
-				"auto": 3,
-				"size": file_len,
-				"type": 0,
-				"pskUrl": "http://" + options.addr + "/files/upgrade.bin",
-				"hmac": file_hmac,
-				"version": "9.0.0" }
-			self.reply(answer, encrypted)
+            # Use threading and subprocess for safe background execution
+            # This prevents shell injection attacks via gwId parameter
+            def trigger_upgrade():
+                import time
+                time.sleep(10)
+                subprocess.run(
+                    ["./mq_pub_15.py", "-i", gwId, "-p", protocol],
+                    check=False
+                )
 
-		elif(".device.upgrade" in a):
-			print("Answer tuya.device.upgrade.get")
-			answer = {
-				"auto": True,
-				"type": 0,
-				"size": file_len,
-				"version": "9.0.0",
-				"url": "http://" + options.addr + "/files/upgrade.bin",
-				"md5": file_md5 }
-			self.reply(answer, encrypted)
+            upgrade_thread = threading.Thread(target=trigger_upgrade, daemon=True)
+            upgrade_thread.start()
 
-		elif(".upgrade" in a):
-			print("Answer s.gw.upgrade")
-			answer = {
-				"auto": 3,
-				"fileSize": file_len,
-				"etag": "0000000000",
-				"version": "9.0.0",
-				"url": "http://" + options.addr + "/files/upgrade.bin",
-				"md5": file_md5 }
-			self.reply(answer, encrypted)
+        # Upgrade endpoints
+        elif ".updatestatus" in a:
+            print("Answer s.gw.upgrade.updatestatus")
+            self.reply(None, encrypted)
 
-		# Misc endpoints
-		elif(".log" in a):
-			print("Answer atop.online.debug.log")
-			answer = True
-			self.reply(answer, encrypted)
+        elif (".upgrade" in a) and encrypted:
+            print("Answer s.gw.upgrade.get")
+            answer = {
+                "auto": 3,
+                "size": file_len,
+                "type": 0,
+                "pskUrl": "http://" + options.addr + "/files/upgrade.bin",
+                "hmac": file_hmac,
+                "version": "9.0.0",
+            }
+            self.reply(answer, encrypted)
 
-		elif(".timer" in a):
-			print("Answer s.gw.dev.timer.count")
-			answer = {
-				"devId": gwId,
-				"count": 0,
-				"lastFetchTime": 0 }
-			self.reply(answer, encrypted)
+        elif ".device.upgrade" in a:
+            print("Answer tuya.device.upgrade.get")
+            answer = {
+                "auto": True,
+                "type": 0,
+                "size": file_len,
+                "version": "9.0.0",
+                "url": "http://" + options.addr + "/files/upgrade.bin",
+                "md5": file_md5,
+            }
+            self.reply(answer, encrypted)
 
-		elif(".config.get" in a):
-			print("Answer tuya.device.dynamic.config.get")
-			answer = {
-				"validTime": 1800,
-				"time": timestamp(),
-				"config": {} }
-			self.reply(answer, encrypted)
+        elif ".upgrade" in a:
+            print("Answer s.gw.upgrade")
+            answer = {
+                "auto": 3,
+                "fileSize": file_len,
+                "etag": "0000000000",
+                "version": "9.0.0",
+                "url": "http://" + options.addr + "/files/upgrade.bin",
+                "md5": file_md5,
+            }
+            self.reply(answer, encrypted)
 
-		# Catchall
-		else:
-			print("Answer generic ({})".format(a))
-			self.reply(None, encrypted)
+        # Misc endpoints
+        elif ".log" in a:
+            print("Answer atop.online.debug.log")
+            answer = True
+            self.reply(answer, encrypted)
+
+        elif ".timer" in a:
+            print("Answer s.gw.dev.timer.count")
+            answer = {"devId": gwId, "count": 0, "lastFetchTime": 0}
+            self.reply(answer, encrypted)
+
+        elif ".config.get" in a:
+            print("Answer tuya.device.dynamic.config.get")
+            answer = {"validTime": 1800, "time": timestamp(), "config": {}}
+            self.reply(answer, encrypted)
+
+        # Catchall
+        else:
+            print("Answer generic ({})".format(a))
+            self.reply(None, encrypted)
 
 
 def main() -> None:
-	"""
-	Initialize and start the fake Tuya registration server.
+    """
+    Initialize and start the fake Tuya registration server.
 
-	This function:
-	1. Parses command-line options (port, address, debug mode, secKey)
-	2. Calculates firmware file hashes for upgrade responses
-	3. Configures Tornado web application with routes:
-	   - / : Connection confirmation
-	   - /gw.json, /d.json : API endpoints
-	   - /files/* : Static firmware file serving
-	   - /* : Catch-all redirect to root
-	4. Starts the HTTP server on the specified address and port
-	5. Enters the Tornado event loop
+    This function:
+    1. Parses command-line options (port, address, debug mode, secKey)
+    2. Calculates firmware file hashes for upgrade responses
+    3. Configures Tornado web application with routes:
+       - / : Connection confirmation
+       - /gw.json, /d.json : API endpoints
+       - /files/* : Static firmware file serving
+       - /* : Catch-all redirect to root
+    4. Starts the HTTP server on the specified address and port
+    5. Enters the Tornado event loop
 
-	Command-line Options:
-		--port: Server port (default: 80)
-		--addr: Server IP address (default: 10.42.42.1)
-		--debug: Enable debug mode (default: True)
-		--secKey: AES encryption key for protocol 2.2 (default: "0000000000000000")
+    Command-line Options:
+            --port: Server port (default: 80)
+            --addr: Server IP address (default: 10.42.42.1)
+            --debug: Enable debug mode (default: True)
+            --secKey: AES encryption key for protocol 2.2 (default: "0000000000000000")
 
-	Raises:
-		OSError: If the server cannot bind to the specified port (e.g., EADDRINUSE)
-	"""
-	parse_command_line()
-	get_file_stats('../files/upgrade.bin')
-	app = tornado.web.Application(
-		[
-			(r"/", MainHandler),
-			(r"/gw.json", JSONHandler),
-			(r"/d.json", JSONHandler),
-			('/files/(.*)', FilesHandler, {'path': str('../files/')}),
-			(r".*", tornado.web.RedirectHandler, {"url": "http://" + options.addr + "/", "permanent": False}),
-		],
-		#template_path=os.path.join(os.path.dirname(__file__), "templates"),
-		#static_path=os.path.join(os.path.dirname(__file__), "templates"),
-		debug=options.debug,
-	)
-	try:
-		app.listen(options.port, options.addr)
-		print("Listening on " + options.addr + ":" + str(options.port))
-		tornado.ioloop.IOLoop.current().start()
-	except OSError as err:
-		print("Could not start server on port " + str(options.port))
-		if err.errno == 98: # EADDRINUSE
-			print("Close the process on this port and try again")
-		else:
-			print(err)
+    Raises:
+            OSError: If the server cannot bind to the specified port (e.g., EADDRINUSE)
+    """
+    parse_command_line()
+    get_file_stats("../files/upgrade.bin")
+    app = tornado.web.Application(
+        [
+            (r"/", MainHandler),
+            (r"/gw.json", JSONHandler),
+            (r"/d.json", JSONHandler),
+            ("/files/(.*)", FilesHandler, {"path": str("../files/")}),
+            (
+                r".*",
+                tornado.web.RedirectHandler,
+                {"url": "http://" + options.addr + "/", "permanent": False},
+            ),
+        ],
+        # template_path=os.path.join(os.path.dirname(__file__), "templates"),
+        # static_path=os.path.join(os.path.dirname(__file__), "templates"),
+        debug=options.debug,
+    )
+    try:
+        app.listen(options.port, options.addr)
+        print("Listening on " + options.addr + ":" + str(options.port))
+        tornado.ioloop.IOLoop.current().start()
+    except OSError as err:
+        print("Could not start server on port " + str(options.port))
+        if err.errno == 98:  # EADDRINUSE
+            print("Close the process on this port and try again")
+        else:
+            print(err)
 
 
 if __name__ == "__main__":
-	main()
+    main()

@@ -1,6 +1,6 @@
 # System Architecture
 
-**Last Updated:** 2025-11-05
+**Last Updated:** 2025-11-07
 **Status:** ✅ Complete
 **Implementation:** Multiple components (see Code References)
 
@@ -599,6 +599,220 @@ screen -r smarthack-wifi   # AP
 1. Device MUST get IP 10.42.42.42
 2. Check DHCP leases: `cat /var/lib/misc/dnsmasq.leases`
 3. Ping device: `ping -c 1 10.42.42.42`
+
+---
+
+## Process Architecture and Inter-Service Communication
+
+### Overview: Shell-Orchestrated Microservices
+
+tuya-convert uses a **process-based microservices architecture** where multiple independent services run in separate `screen` sessions, orchestrated by bash scripts rather than a monolithic Python application.
+
+```
+start_flash.sh (Bash Orchestrator)
+├── screen: hostapd (C binary - WiFi AP)
+├── screen: dnsmasq (C binary - DHCP/DNS)
+├── screen: fake-registration-server.py (Python - HTTP/HTTPS server)
+├── screen: mosquitto (C binary - MQTT broker)
+├── screen: psk-frontend.py (Python - TLS-PSK proxy)
+├── screen: tuya-discovery.py (Python - UDP discovery)
+└── background: smartconfig/main.py (Python - WiFi pairing)
+```
+
+### Inter-Process Communication Patterns
+
+**Services communicate via:**
+- **Network protocols** (HTTP, MQTT, UDP) - not Python imports
+- **File system** (logs, configuration files)
+- **Process signals** (SIGTERM, SIGINT, pkill)
+- **Subprocess calls** (one Python script calling another)
+
+### The Subprocess Pattern
+
+**Two instances where Python scripts call other Python scripts:**
+
+#### 1. Killing smartconfig Process
+
+```python
+# scripts/fake-registration-server.py:307
+subprocess.run(["pkill", "-f", "smartconfig/main.py"], check=False)
+```
+
+**Context:**
+- smartconfig/main.py is launched by start_flash.sh in background
+- When device activates, fake-registration-server needs to stop smartconfig
+- Uses subprocess + pkill because processes are in different execution contexts
+
+#### 2. Triggering MQTT Upgrade Message
+
+```python
+# scripts/fake-registration-server.py:333-342
+def trigger_upgrade():
+    import time
+    time.sleep(10)
+    subprocess.run(["./mq_pub_15.py", "-i", gwId, "-p", protocol], check=False)
+
+threading.Thread(target=trigger_upgrade, daemon=True).start()
+```
+
+**Context:**
+- Device has activated and needs firmware upgrade trigger
+- mq_pub_15.py publishes MQTT message to device
+- Runs in background thread with 10 second delay
+- Uses subprocess instead of function import
+
+**Line References:**
+- smartconfig kill: `scripts/fake-registration-server.py` line 307
+- mq_pub_15.py call: `scripts/fake-registration-server.py` lines 333-342
+- mq_pub_15.py script: `scripts/mq_pub_15.py` (command-line tool)
+
+### Why This Architecture?
+
+#### Historical Context
+
+**Origins (2018):**
+- Developed by security researchers (VTRUST)
+- Created for **35C3 conference demonstration**
+- Goal: Proof-of-concept exploit, not production software
+- Timeline: Built quickly for specific use case
+
+**Design Drivers:**
+1. **Shell-first approach** - Linux tools (hostapd, dnsmasq, mosquitto) orchestrated by bash
+2. **Debugging ease** - Each service in separate screen → view logs independently
+3. **Process isolation** - Services can crash without affecting others
+4. **Mixed languages** - C binaries + Python scripts + bash glue
+5. **Simplicity** - Subprocess was quickest way to integrate services
+
+#### Advantages
+
+✅ **Easy debugging**
+- Attach to any screen session to see live output
+- Independent log files per service
+- Kill/restart individual services without restarting all
+
+✅ **Process isolation**
+- One service crash doesn't bring down the system
+- Can run different Python versions per script (if needed)
+- Clear separation of concerns
+
+✅ **Language flexibility**
+- Mix C binaries (hostapd), Python scripts, bash orchestration
+- Each tool uses best language for the job
+
+✅ **Monitoring**
+- Screen sessions make it easy to see what's happening
+- Users can watch attack progress in real-time
+- Good for education/demonstration
+
+#### Disadvantages
+
+❌ **Not Pythonic**
+- Can't import mq_pub_15 functions into other modules
+- Hard to unit test (requires subprocess mocking)
+- Tight coupling to file system paths (`./ mq_pub_15.py`)
+- No dependency injection or inversion of control
+
+❌ **Fragile inter-process coupling**
+- Assumes specific file paths and executable permissions
+- Process signals (pkill) can fail silently
+- No error handling for subprocess failures
+
+❌ **Testing complexity**
+- Integration tests require full process orchestration
+- Can't easily mock subprocess calls
+- Hard to test individual components in isolation
+
+❌ **Maintenance burden**
+- Changes to one script may require changes to orchestrator
+- Command-line argument parsing duplicated across scripts
+- No shared code structure or interfaces
+
+### Alternative Architectures Considered
+
+#### Option 1: Monolithic Python Application
+```python
+# Single Python process with asyncio
+async def main():
+    await asyncio.gather(
+        run_fake_server(),
+        run_psk_frontend(),
+        run_discovery(),
+        run_smartconfig()
+    )
+```
+
+**Pros:** True Python modules, better testability, shared state
+**Cons:** Harder to debug, single point of failure, loses screen sessions
+
+#### Option 2: Python with Function Imports
+```python
+# Make mq_pub_15.py importable
+from mq_pub_15 import publish_upgrade_message
+
+def trigger_upgrade():
+    time.sleep(10)
+    publish_upgrade_message(gwId, options.secKey, protocol)
+```
+
+**Pros:** Pythonic, testable, no subprocess overhead
+**Cons:** Requires refactoring all scripts, changes orchestration model
+
+#### Option 3: Message Queue (Redis/RabbitMQ)
+```
+fake-server → [Redis Queue] → mq_pub_15 worker
+```
+
+**Pros:** Proper async, decoupled, scalable
+**Cons:** Overkill for single-use tool, adds dependencies
+
+### Current Status (2025)
+
+**Decision:** Keep process-based architecture for now
+
+**Rationale:**
+1. **Works reliably** - Proven in production use since 2018
+2. **Matches use case** - Single-user, single-device, one-time operation
+3. **Education value** - Screen sessions aid learning and debugging
+4. **Bash integration** - Deep coupling with shell orchestration
+5. **Not production software** - Security research tool, not long-running service
+
+### Future Architectural Investigation
+
+⚠️ **Post-Refactoring Investigation Planned**
+
+After current code quality improvements (Phase 1-2) are complete, investigate:
+
+1. **Module-based refactoring**
+   - Make Python scripts importable while preserving CLI functionality
+   - Extract functions from scripts for reuse (e.g., mq_pub_15.py)
+   - Add proper `if __name__ == "__main__":` guards
+
+2. **Improved subprocess handling**
+   - Better error handling and timeout management
+   - Structured logging of subprocess calls
+   - Validation of return codes and output
+
+3. **Testing infrastructure**
+   - Integration tests for inter-process communication
+   - Mock subprocess calls in unit tests
+   - Test script CLI interfaces independently
+
+4. **Architectural decision points**
+   - Keep screen-based orchestration vs migrate to Python-native?
+   - Preserve bash orchestrator vs rewrite in Python?
+   - Maintain process isolation vs shared Python runtime?
+   - Balance between "works now" and "pythonic architecture"
+
+5. **Risk assessment**
+   - What breaks if we change architecture?
+   - Can we maintain backward compatibility?
+   - Is the effort justified for a research tool?
+
+**Timeline:** After Phase 2 completion (type hints, constants, cleanup)
+
+**Status:** Investigation only - no implementation commitment
+
+**Goal:** Make informed architectural decisions with full understanding of trade-offs
 
 ---
 
