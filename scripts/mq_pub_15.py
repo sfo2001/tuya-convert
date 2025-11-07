@@ -68,7 +68,9 @@ def main(argv=None):
             opts, args = getopt.getopt(
                 argv[1:], "hl:i:vb:p:", ["help", "localKey=", "deviceID=", "broker=", "protocol="]
             )
-        except:
+        except getopt.GetoptError as err:
+            # Invalid command-line arguments
+            print(f"Error: {err}", file=sys.stderr)
             raise Usage(help_message)
 
         # option processing
