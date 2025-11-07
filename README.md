@@ -52,7 +52,12 @@ On January 28th, 2019, Tuya started [distributing a patch](https://www.heise.de/
 
 To ensure the best chance of success, **do not connect your device with the official app** as it may automatically update the device, preventing you from flashing with tuya-convert. It is up to the individual brands to update their firmware, so some devices may be affected sooner than others.
 
-Unfortunately many devices have already been shipping with the new patched firmware, evident by a PSK ID beginning with 02 in smarthack-psk.log. There is no workaround at this time. Additionally, manufacturers have been silently switching from the ESP82xx based modules to other chipsets, making it impossible to install alternative ESP firmware on these devices.
+Unfortunately many devices have already been shipping with the new patched firmware, evident by a PSK ID beginning with 02 in smarthack-psk.log. There is no workaround for tuya-convert at this time. Additionally, manufacturers have been silently switching from the ESP82xx based modules to other chipsets, making it impossible to install alternative ESP firmware on these devices.
+
+**Alternative Solutions:**
+- **PSK v2 devices:** Serial flashing still works (see [Alternative Chips Guide](docs/Alternative-Chips-And-Flashing.md))
+- **Non-ESP chips:** See [tuya-cloudcutter](https://github.com/tuya-cloudcutter/tuya-cloudcutter) for OTA, or serial flash with [OpenBeken](https://github.com/openshwprojects/OpenBK7231T_App)
+- **Full comparison:** See [Related Projects](docs/Related-Projects.md) for comprehensive guide
 
 ### INSTALLATION
     # git clone https://github.com/ct-Open-Source/tuya-convert
@@ -198,6 +203,24 @@ You can also give back by providing or improving documentation, tutorials, issue
 - **Solution:** Upgrade to a modern Linux distribution (Ubuntu 20.04+, Debian 11+, Raspberry Pi OS current)
 
 ## RELATED WORKS
-- [TuyAPI](https://github.com/codetheweb/tuyapi) NPM library for LAN control of Tuya devices with stock firmware
-- [TuyOTA](https://github.com/SynAckFin/TuyOTA) Perl based Tuya flashing script using a similar strategy
-- [MockTuyaCloud](https://github.com/kueblc/mocktuyacloud) Framework replicating much of the Tuya cloud functionality
+
+For a comprehensive overview of the Tuya hacking ecosystem, see **[Related Projects and Ecosystem](docs/Related-Projects.md)**.
+
+This includes:
+- **tuya-cloudcutter** - OTA flashing for BK7231 and other non-ESP chips
+- **OpenBeken** - Alternative firmware for BK7231T/N, ECR6600, RTL8xxx, W800, and more
+- **Tasmota** - Popular ESP firmware (included in this project)
+- **ESPurna** - Lightweight ESP firmware (included in this project)
+- **TuyAPI / tinytuya** - Local control with stock firmware (no flashing required)
+- **Zigbee and BLE projects** - For Telink and Phyplus based devices
+- PSK v2 status across all projects
+- Hardware coverage comparison
+
+### Quick Links
+
+- [TuyAPI](https://github.com/codetheweb/tuyapi) - NPM library for LAN control of Tuya devices with stock firmware
+- [tuya-cloudcutter](https://github.com/tuya-cloudcutter/tuya-cloudcutter) - Successor to tuya-convert supporting non-ESP chips
+- [OpenBeken](https://github.com/openshwprojects/OpenBK7231T_App) - Firmware for BK7231, ECR6600, and other non-ESP chips
+- [TuyOTA](https://github.com/SynAckFin/TuyOTA) - Perl based Tuya flashing script using a similar strategy
+- [MockTuyaCloud](https://github.com/kueblc/mocktuyacloud) - Framework replicating much of the Tuya cloud functionality
+- [tinytuya](https://github.com/jasonacox/tinytuya) - Python module for Tuya device control

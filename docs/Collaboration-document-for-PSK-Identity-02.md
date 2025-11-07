@@ -11,6 +11,10 @@ This document consolidates community research into the PSK Identity 02 protocol 
 
 **Original research discussion:** [Issue #483](https://github.com/ct-Open-Source/tuya-convert/issues/483)
 
+**Related Resources:**
+- [Related Projects and Ecosystem](Related-Projects.md) - PSK v2 status across all projects
+- [Alternative Chips and Flashing](Alternative-Chips-And-Flashing.md) - Serial flashing (works regardless of PSK version)
+
 ## Does output in your smarthack-psk.log look like this?
 ```
 new client on port 443 from 10.42.42.25:3694
@@ -306,4 +310,103 @@ maybe this helps someone: https://github.com/xety1337/tuya-reverse
 * Next steps:
   * Find out how the communication between the app and the servers is further encrypted
   * Attempt to build firmware for the smart device that has the mitmproxy embedded?
+
+## PSK v2 Status in Other Projects
+
+### tuya-cloudcutter
+
+**Repository:** https://github.com/tuya-cloudcutter/tuya-cloudcutter
+
+**PSK v2 Status:** ⚠️ **Partially Affected**
+
+**Known Issues:**
+- GitHub Issue #88: Treatlife SL10 bulbs - "Using PSK v1 - Received PSK ID version 02" error
+- GitHub Issue #210: LSC Smart Plug 970766 - PSK v2 handshake failures
+
+**Workarounds Reported:**
+- Some users successfully flashed PSK v2 devices using alternative device profiles
+- Example: Using `oem-bk7231n-plug-1.1.8-sdk-2.3.1-40.00.json` profile instead of device-specific profile
+- Success rate varies by device model and firmware version
+
+**Key Difference from tuya-convert:**
+- tuya-cloudcutter exploits cloud connectivity rather than SmartConfig pairing
+- Supports BK7231 and other non-ESP chips
+- Different attack vector may work on some PSK v2 devices that tuya-convert cannot handle
+
+**Known Patched Firmware:** https://github.com/tuya-cloudcutter/tuya-cloudcutter/wiki/Known-Patched-Firmware
+
+### Serial Flashing (All Projects)
+
+**PSK v2 Status:** ✅ **NOT AFFECTED**
+
+**Why Serial Flashing Works:**
+- Direct flash chip access bypasses all firmware security
+- PSK v2 is a TLS handshake security measure, not flash chip protection
+- Serial flashing requires physical device access (UART pins)
+
+**Applicable Firmware:**
+- **Tasmota** (ESP8266/ESP8285/ESP32) - Serial flash works regardless of PSK version
+- **ESPurna** (ESP8266/ESP8285/ESP32) - Serial flash works regardless of PSK version
+- **OpenBeken** (BK7231, ECR6600, RTL8xxx, W800) - Serial flash only method, PSK irrelevant
+- **LibreTiny + ESPHome** (BK7231, RTL8xxx) - Serial flash only, PSK irrelevant
+
+**See:** [Alternative Chips and Flashing Guide](Alternative-Chips-And-Flashing.md) for detailed serial flashing instructions
+
+### API-Based Local Control (No Flashing)
+
+**Projects:** TuyAPI, python-tuya, tinytuya
+
+**PSK v2 Impact:** ⚠️ **Varies by Device**
+
+**Explanation:**
+- These projects control devices with stock firmware via local protocol
+- PSK is used for device-to-cloud communication (MQTT over TLS)
+- Local UDP/TCP protocol may or may not be affected
+- Depends on device firmware version and local protocol implementation
+
+**Advantages:**
+- No firmware modification required
+- Works with devices that cannot be flashed
+- Local control without cloud dependency (for operation)
+
+**Disadvantages:**
+- Requires device key extraction (usually needs cloud API access)
+- Device keys may change with firmware updates
+- Limited functionality compared to custom firmware
+
+### Current Research Consensus (2025-11-07)
+
+**PSK v2 OTA Cracking Status:** ❌ **NOT FEASIBLE**
+
+**Reasons:**
+1. **PSK is device-unique and random**
+   - Not derivable from public information (gwId, MAC, etc.)
+   - Likely 37-character base62-encoded random value (224 bits)
+   - Only stored on device flash (0xFB000 JSON blob) and Tuya cloud servers
+
+2. **No information leakage in PSK v2**
+   - PSK v1 leaked secret `auzKey` via MD5 in PSK ID
+   - PSK v2 uses SHA256(gwId) in PSK ID - already public information
+   - No exploitable cryptographic weakness found
+
+3. **Only known PSK retrieval methods require physical access or prior compromise:**
+   - Serial flash dump (requires opening device)
+   - Capture upgrade traffic from PSK v1 → PSK v2 (requires vulnerable device)
+   - Tuya developer API (limited availability, requires device registration)
+
+**Practical Implications:**
+- **OTA flashing is effectively dead for PSK v2 devices** (with rare exceptions via tuya-cloudcutter workarounds)
+- **Serial flashing is the reliable alternative** (one-time hardware access, then OTA updates forever)
+- **Community focus has shifted to:**
+  - Improving serial flashing tools and UX
+  - OpenBeken development for non-ESP chips
+  - Pogo pin jigs and flashing fixtures for batch processing
+  - Device identification and chip type databases
+
+**Recommendation:**
+- For ESP8266/ESP8285 PSK v2 devices: Serial flash with Tasmota/ESPurna
+- For BK7231/ECR6600/other chips: Serial flash with OpenBeken
+- For devices that cannot be opened: Consider TuyAPI for local control or return/replace device
+
+**See [Related Projects and Ecosystem](Related-Projects.md) for comprehensive project comparison and hardware coverage.**
 
