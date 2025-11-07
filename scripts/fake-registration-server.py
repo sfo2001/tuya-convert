@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # encoding: utf-8
-"""
-Fake Tuya Registration Server
+"""Fake Tuya Registration Server for Device Firmware Flashing.
 
 This module implements a fake Tuya cloud registration server used for flashing
 alternative firmware to Tuya-based IoT devices. It intercepts device activation
@@ -10,11 +9,113 @@ and upgrade requests, simulating the official Tuya cloud API endpoints.
 The server supports both encrypted (protocol 2.2) and unencrypted (protocol 2.1)
 communication modes, using AES-ECB encryption with a configurable secret key.
 
+How It Works:
+    1. Device connects to fake AP created by tuya-convert
+    2. Device sends smartconfig credentials → Server stores token
+    3. Device requests activation → Server responds with fake cloud URLs
+    4. Device checks for firmware upgrade → Server offers custom firmware
+    5. Device downloads and flashes alternative firmware
+
+Protocol Flow Diagram:
+    ┌────────┐                          ┌─────────────┐
+    │ Device │                          │ Fake Server │
+    └───┬────┘                          └──────┬──────┘
+        │                                      │
+        │  s.gw.token.get (gwId, token)       │
+        │─────────────────────────────────────▶│
+        │◀─────────────────────────────────────│
+        │  {gwApiUrl, mqttUrl, ...}            │
+        │                                      │
+        │  [smartconfig killed]                │
+        │                                      │
+        │  s.gw.dev.pk.active (encrypted)     │
+        │─────────────────────────────────────▶│
+        │◀─────────────────────────────────────│
+        │  {schema, secKey, localKey, ...}    │
+        │                                      │
+        │  [mq_pub_15.py triggered]           │
+        │                                      │
+        │  s.gw.upgrade.get (2.2) or          │
+        │  s.gw.upgrade (2.1)                 │
+        │─────────────────────────────────────▶│
+        │◀─────────────────────────────────────│
+        │  {url, md5, hmac, version: 9.0.0}   │
+        │                                      │
+        │  HTTP GET /files/upgrade.bin         │
+        │─────────────────────────────────────▶│
+        │◀─────────────────────────────────────│
+        │  [firmware binary]                   │
+        │                                      │
+        │  s.gw.upgrade.updatestatus          │
+        │─────────────────────────────────────▶│
+        │◀─────────────────────────────────────│
+        │  {success: true}                     │
+        │                                      │
+        │  [Device reboots with new firmware] │
+        └─────────────────────────────────────┘
+
+Main API Endpoints:
+    - s.gw.token.get: Token retrieval, returns fake cloud URLs
+    - s.gw.dev.pk.active: Device activation, triggers upgrade
+    - s.gw.upgrade.get: Upgrade check (protocol 2.2)
+    - s.gw.upgrade: Upgrade check (protocol 2.1)
+    - tuya.device.upgrade.get: Alternative upgrade endpoint
+    - s.gw.upgrade.updatestatus: Upgrade status reporting
+    - s.gw.log: Log submission endpoint
+    - s.gw.timer: Timer configuration endpoint
+    - s.gw.dev.config.get: Dynamic configuration endpoint
+
+Encryption (Protocol 2.2):
+    Request: data parameter contains hex-encoded AES-ECB encrypted JSON
+    Response: {
+        "result": base64(AES-ECB-encrypt(JSON)),
+        "t": timestamp,
+        "sign": MD5("result=<encrypted>||t=<timestamp>||<secKey>")[8:24]
+    }
+
+Plain (Protocol 2.1):
+    Request: JSON parameters in query string or body
+    Response: {
+        "result": <data>,
+        "t": timestamp,
+        "e": false,
+        "success": true
+    }
+
 Main Features:
-- Device activation and token generation endpoints
-- Firmware upgrade endpoints with MD5/SHA256/HMAC verification
-- Dynamic configuration and timer management
-- Support for both ESP82xx-based devices and others
+    - Device activation and token generation endpoints
+    - Firmware upgrade endpoints with MD5/SHA256/HMAC verification
+    - Dynamic configuration and timer management
+    - Support for both ESP82xx-based devices and others
+    - Automatic smartconfig process termination after token retrieval
+    - Automatic firmware upgrade trigger after device activation
+
+Typical Usage:
+    Run as part of tuya-convert:
+        $ sudo ./start_flash.sh
+
+    Run standalone for testing:
+        $ ./fake-registration-server.py --port=80 --addr=10.42.42.1
+
+    Custom secret key:
+        $ ./fake-registration-server.py --secKey=mysecretkey123
+
+Command-line Options:
+    --port: HTTP server port (default: 80)
+    --addr: Server IP address (default: 10.42.42.1)
+    --secKey: Secret key for encrypted communication (default: 0000000000000000)
+    --debug: Enable debug mode (default: True)
+
+Example:
+    >>> from tornado.ioloop import IOLoop
+    >>> from fake_registration_server import JSONHandler
+    >>> # Server runs automatically when executed as script
+    >>> # Access at http://10.42.42.1/gw.json?a=s.gw.token.get
+
+Security Note:
+    This server intentionally bypasses Tuya cloud security to enable local
+    firmware flashing. It should only be run on isolated networks you control.
+    Never expose this server to the internet.
 
 Created by nano on 2018-11-22.
 Copyright (c) 2018 VTRUST. All rights reserved.
@@ -59,7 +160,7 @@ import json
 from base64 import b64encode
 
 # Import shared cryptographic utilities
-from crypto_utils import decrypt, encrypt, pad, unpad
+from crypto_utils import decrypt, encrypt
 
 
 def jsonstr(j: Union[Dict, list, Any]) -> str:
@@ -217,9 +318,9 @@ class JSONHandler(tornado.web.RequestHandler):
         """
         ts = timestamp()
         if encrypted:
-            answer = {"result": result, "t": ts, "success": True}
-            answer = jsonstr(answer)
-            payload = b64encode(encrypt(answer, options.secKey.encode())).decode()
+            answer_dict = {"result": result, "t": ts, "success": True}
+            answer_json = jsonstr(answer_dict)
+            payload = b64encode(encrypt(answer_json, options.secKey.encode())).decode()
             signature = "result=%s||t=%d||%s" % (payload, ts, options.secKey)
             signature = hashlib.md5(signature.encode()).hexdigest()[8:24]
             answer = {"result": payload, "t": ts, "sign": signature}
@@ -227,12 +328,12 @@ class JSONHandler(tornado.web.RequestHandler):
             answer = {"t": ts, "e": False, "success": True}
             if result:
                 answer["result"] = result
-        answer = jsonstr(answer)
+        answer_json = jsonstr(answer)
         self.set_header("Content-Type", "application/json;charset=UTF-8")
-        self.set_header("Content-Length", str(len(answer)))
+        self.set_header("Content-Length", str(len(answer_json)))
         self.set_header("Content-Language", "zh-CN")
-        self.write(answer)
-        print("reply", answer)
+        self.write(answer_json)
+        print("reply", answer_json)
 
     def post(self) -> None:
         """
@@ -265,6 +366,7 @@ class JSONHandler(tornado.web.RequestHandler):
         encrypted = str(self.get_argument("et", 0)) == "1"
         gwId = str(self.get_argument("gwId", 0))
         payload = self.request.body[5:]
+        answer: Optional[Union[Dict, bool]] = None
         print()
         print(self.request.method, uri)
         print(self.request.headers)
@@ -332,11 +434,9 @@ class JSONHandler(tornado.web.RequestHandler):
             # This prevents shell injection attacks via gwId parameter
             def trigger_upgrade():
                 import time
+
                 time.sleep(10)
-                subprocess.run(
-                    ["./mq_pub_15.py", "-i", gwId, "-p", protocol],
-                    check=False
-                )
+                subprocess.run(["./mq_pub_15.py", "-i", gwId, "-p", protocol], check=False)
 
             upgrade_thread = threading.Thread(target=trigger_upgrade, daemon=True)
             upgrade_thread.start()

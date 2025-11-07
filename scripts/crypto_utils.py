@@ -122,7 +122,8 @@ def encrypt(message: str, key: bytes) -> bytes:
     padded_message = pad(message)
     plaintext_bytes = padded_message.encode("utf-8")
     cipher = AES.new(key, AES.MODE_ECB)
-    return cipher.encrypt(plaintext_bytes)
+    encrypted: bytes = cipher.encrypt(plaintext_bytes)
+    return encrypted
 
 
 def decrypt(encrypted_message: bytes, key: bytes) -> str:
