@@ -33,6 +33,8 @@ define("secKey", default="0000000000000000", help="key used for encrypted commun
 
 import os
 import signal
+import subprocess
+import threading
 from types import FrameType
 
 
@@ -272,7 +274,9 @@ class JSONHandler(tornado.web.RequestHandler):
                 if decrypted_payload[0] != "{":
                     raise ValueError("payload is not JSON")
                 print("payload", decrypted_payload)
-            except:
+            except (binascii.Error, ValueError, UnicodeDecodeError) as e:
+                # Failed to decrypt or decode payload - log error and display raw payload
+                print(f"Failed to decrypt payload: {e}")
                 print("payload", payload.decode())
 
         if gwId == "0":
@@ -299,7 +303,8 @@ class JSONHandler(tornado.web.RequestHandler):
                 answer["mediaMqttsUrl"] = options.addr
                 answer["aispeech"] = options.addr
             self.reply(answer)
-            os.system("pkill -f smartconfig/main.py")
+            # Kill smartconfig process using subprocess (safer than os.system)
+            subprocess.run(["pkill", "-f", "smartconfig/main.py"], check=False)
 
         elif ".active" in a:
             print("Answer s.gw.dev.pk.active")
@@ -322,7 +327,19 @@ class JSONHandler(tornado.web.RequestHandler):
             self.reply(answer)
             print("TRIGGER UPGRADE IN 10 SECONDS")
             protocol = "2.2" if encrypted else "2.1"
-            os.system("sleep 10 && ./mq_pub_15.py -i %s -p %s &" % (gwId, protocol))
+
+            # Use threading and subprocess for safe background execution
+            # This prevents shell injection attacks via gwId parameter
+            def trigger_upgrade():
+                import time
+                time.sleep(10)
+                subprocess.run(
+                    ["./mq_pub_15.py", "-i", gwId, "-p", protocol],
+                    check=False
+                )
+
+            upgrade_thread = threading.Thread(target=trigger_upgrade, daemon=True)
+            upgrade_thread.start()
 
         # Upgrade endpoints
         elif ".updatestatus" in a:
