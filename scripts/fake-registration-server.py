@@ -160,7 +160,7 @@ import json
 from base64 import b64encode
 
 # Import shared cryptographic utilities
-from crypto_utils import decrypt, encrypt, pad, unpad
+from crypto_utils import decrypt, encrypt
 
 
 def jsonstr(j: Union[Dict, list, Any]) -> str:
@@ -318,9 +318,9 @@ class JSONHandler(tornado.web.RequestHandler):
         """
         ts = timestamp()
         if encrypted:
-            answer = {"result": result, "t": ts, "success": True}
-            answer = jsonstr(answer)
-            payload = b64encode(encrypt(answer, options.secKey.encode())).decode()
+            answer_dict = {"result": result, "t": ts, "success": True}
+            answer_json = jsonstr(answer_dict)
+            payload = b64encode(encrypt(answer_json, options.secKey.encode())).decode()
             signature = "result=%s||t=%d||%s" % (payload, ts, options.secKey)
             signature = hashlib.md5(signature.encode()).hexdigest()[8:24]
             answer = {"result": payload, "t": ts, "sign": signature}
@@ -328,12 +328,12 @@ class JSONHandler(tornado.web.RequestHandler):
             answer = {"t": ts, "e": False, "success": True}
             if result:
                 answer["result"] = result
-        answer = jsonstr(answer)
+        answer_json = jsonstr(answer)
         self.set_header("Content-Type", "application/json;charset=UTF-8")
-        self.set_header("Content-Length", str(len(answer)))
+        self.set_header("Content-Length", str(len(answer_json)))
         self.set_header("Content-Language", "zh-CN")
-        self.write(answer)
-        print("reply", answer)
+        self.write(answer_json)
+        print("reply", answer_json)
 
     def post(self) -> None:
         """
@@ -366,6 +366,7 @@ class JSONHandler(tornado.web.RequestHandler):
         encrypted = str(self.get_argument("et", 0)) == "1"
         gwId = str(self.get_argument("gwId", 0))
         payload = self.request.body[5:]
+        answer: Optional[Union[Dict, bool]] = None
         print()
         print(self.request.method, uri)
         print(self.request.headers)
@@ -433,11 +434,9 @@ class JSONHandler(tornado.web.RequestHandler):
             # This prevents shell injection attacks via gwId parameter
             def trigger_upgrade():
                 import time
+
                 time.sleep(10)
-                subprocess.run(
-                    ["./mq_pub_15.py", "-i", gwId, "-p", protocol],
-                    check=False
-                )
+                subprocess.run(["./mq_pub_15.py", "-i", gwId, "-p", protocol], check=False)
 
             upgrade_thread = threading.Thread(target=trigger_upgrade, daemon=True)
             upgrade_thread.start()

@@ -93,7 +93,12 @@ TUYA_NON_ESP_ABILITY_KEY = "ablilty"  # Typo in non-ESP SDK (used to detect non-
 
 # Derived constants
 udpkey = md5(UDP_KEY_MAGIC).digest()
-decrypt_udp = lambda msg: decrypt(msg, udpkey)
+
+
+def decrypt_udp(msg: bytes) -> str:
+    """Decrypt UDP message using the derived UDP key."""
+    return decrypt(msg, udpkey)
+
 
 devices_seen = set()
 
@@ -174,7 +179,8 @@ class TuyaDiscovery(asyncio.DatagramProtocol):
         # decrypt if encrypted
         try:
             data = decrypt_udp(data)  # type: ignore[assignment]
-        except:
+        except Exception:
+            # Decryption failed, try plain text
             data = data.decode()  # type: ignore[assignment]
         print(addr[0], data)
         # parse json
@@ -187,7 +193,8 @@ class TuyaDiscovery(asyncio.DatagramProtocol):
                 print(
                     "WARNING: it appears this device does not use an ESP82xx and therefore cannot install ESP based firmware"
                 )
-        except:
+        except (json.JSONDecodeError, TypeError):
+            # Invalid JSON or non-dict data, skip processing
             pass
 
 
@@ -240,8 +247,12 @@ def main() -> None:
         - Gracefully handles Ctrl+C shutdown
     """
     loop = asyncio.get_event_loop()
-    listener = loop.create_datagram_endpoint(TuyaDiscovery, local_addr=(BIND_ALL_INTERFACES, UDP_BROADCAST_PORT))
-    encrypted_listener = loop.create_datagram_endpoint(TuyaDiscovery, local_addr=(BIND_ALL_INTERFACES, UDP_ENCRYPTED_PORT))
+    listener = loop.create_datagram_endpoint(
+        TuyaDiscovery, local_addr=(BIND_ALL_INTERFACES, UDP_BROADCAST_PORT)
+    )
+    encrypted_listener = loop.create_datagram_endpoint(
+        TuyaDiscovery, local_addr=(BIND_ALL_INTERFACES, UDP_ENCRYPTED_PORT)
+    )
     loop.run_until_complete(listener)
     print(f"Listening for Tuya broadcast on UDP {UDP_BROADCAST_PORT}")
     loop.run_until_complete(encrypted_listener)

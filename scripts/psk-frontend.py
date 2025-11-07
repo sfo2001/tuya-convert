@@ -61,7 +61,7 @@ Created by VTRUST team for tuya-convert project.
 import select
 import socket
 import ssl
-from binascii import hexlify, unhexlify
+from binascii import hexlify
 from hashlib import md5
 from typing import List, Tuple
 
@@ -190,7 +190,7 @@ def gen_psk(identity: bytes, hint: bytes) -> bytes:
     key = md5(hint[-MD5_KEY_LENGTH:]).digest()
     iv = md5(identity).digest()
     cipher = AES.new(key, AES.MODE_CBC, iv)
-    psk = cipher.encrypt(identity[:AES_BLOCK_SIZE])
+    psk: bytes = cipher.encrypt(identity[:AES_BLOCK_SIZE])
     print("PSK: %s" % hexlify(psk).decode())
     return psk
 

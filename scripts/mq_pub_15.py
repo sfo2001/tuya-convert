@@ -177,7 +177,11 @@ def iot_enc(message: str, local_key: str, protocol: str) -> bytes:
         signature = (
             b"data=" + messge_enc + b"||pv=" + protocol.encode() + b"||" + local_key.encode()
         )
-        signature = md5(signature).hexdigest()[SIGNATURE_START_OFFSET : SIGNATURE_START_OFFSET + SIGNATURE_LENGTH].encode()
+        signature = (
+            md5(signature)
+            .hexdigest()[SIGNATURE_START_OFFSET : SIGNATURE_START_OFFSET + SIGNATURE_LENGTH]
+            .encode()
+        )
         messge_enc = protocol.encode() + signature + messge_enc
     else:
         timestamp = b"%08d" % ((int(time.time() * TIMESTAMP_MULTIPLIER) % TIMESTAMP_MODULO))
@@ -278,7 +282,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         # option processing
         for option, value in opts:
             if option == "-v":
-                verbose = True
+                _verbose = True  # noqa: F841 - Reserved for future verbose logging
             if option in ("-h", "--help"):
                 raise Usage(help_message)
             if option in ("-l", "--localKey"):
