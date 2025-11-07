@@ -1,8 +1,8 @@
 # Alternative Chips and Flashing Methods
 
-**Last Updated:** November 6, 2025
+**Last Updated:** November 7, 2025
 **Status:** 📚 Complete Guide
-**Related Issue:** [#1157](https://github.com/ct-Open-Source/tuya-convert/issues/1157)
+**Related:** [#1157](https://github.com/ct-Open-Source/tuya-convert/issues/1157) | [Related Projects](Related-Projects.md)
 
 ---
 
@@ -61,9 +61,38 @@ Help users identify their device's chip and flash alternative open-source firmwa
    WARNING: it appears this device does not use an ESP82xx
    and therefore cannot install ESP based firmware
    ```
-3. If you see this warning → your device has a non-ESP chip → continue to Method 3
+3. If you see this warning → your device has a non-ESP chip → continue to Method 1b or Method 3
 
 **Advantage:** No disassembly required, safe to try even if you plan to return the device.
+
+### Method 1b: Try tuya-cloudcutter (For Non-ESP Devices)
+
+**Why:** May succeed where tuya-convert fails, especially for BK7231 devices.
+
+**Repository:** https://github.com/tuya-cloudcutter/tuya-cloudcutter
+
+**Supported Chips:**
+- BK7231T/N
+- BL2028N
+- ESP8266/ESP8285 (alternative to tuya-convert)
+
+**Steps:**
+1. Check device compatibility: https://tuya-cloudcutter.github.io/
+2. Follow tuya-cloudcutter installation and flashing instructions
+3. If successful → device will run LibreTiny or OpenBeken firmware
+4. If fails → proceed to serial flashing (Method 3)
+
+**Advantages:**
+- No hardware modification required
+- Supports non-ESP chips
+- Different exploit than tuya-convert (may work when tuya-convert fails)
+
+**Limitations:**
+- Partially affected by PSK v2 (though workarounds exist)
+- Success rate varies by device and firmware version
+- Smaller device database than tuya-convert
+
+**See:** [Related Projects](Related-Projects.md) for detailed tuya-cloudcutter information and PSK v2 status.
 
 ### Method 2: Check Before Purchase
 
