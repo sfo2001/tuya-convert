@@ -27,10 +27,39 @@ iot:
 
 from crypto_utils import decrypt, encrypt
 
+# Protocol constants
+PROTOCOL_VERSION_21 = "2.1"
+PROTOCOL_VERSION_22 = "2.2"
+PROTOCOL_NUMBER = 15
+
+# Default configuration
+DEFAULT_BROKER = "127.0.0.1"
+DEFAULT_LOCAL_KEY = "0000000000000000"
+DEFAULT_PROTOCOL = PROTOCOL_VERSION_21
+
+# Message format constants
+MESSAGE_PREFIX_LENGTH = 19
+SIGNATURE_START_OFFSET = 8
+SIGNATURE_LENGTH = 16
+TIMESTAMP_MODULO = 100000000
+TIMESTAMP_MULTIPLIER = 100
+CRC_BYTE_SIZE = 4
+
+# Validation constants
+MIN_KEY_LENGTH = 10
+MIN_DEVICE_ID_LENGTH = 10
+
+# Exit codes
+EXIT_SUCCESS = 0
+EXIT_ERROR = 2
+
+# Tuya IoT constants
+TUYA_SEQUENCE_NUMBER = 1523715  # Appears to be a fixed sequence number for protocol 15
+
 
 def iot_dec(message: str, local_key: str) -> str:
     """Decrypt IoT message from base64-encoded format."""
-    message_clear = decrypt(base64.b64decode(message[19:]), local_key.encode())
+    message_clear = decrypt(base64.b64decode(message[MESSAGE_PREFIX_LENGTH:]), local_key.encode())
     print(message_clear)
     return message_clear
 
@@ -38,17 +67,17 @@ def iot_dec(message: str, local_key: str) -> str:
 def iot_enc(message: str, local_key: str, protocol: str) -> bytes:
     """Encrypt IoT message with protocol-specific formatting."""
     messge_enc = encrypt(message, local_key.encode())
-    if protocol == "2.1":
+    if protocol == PROTOCOL_VERSION_21:
         messge_enc = base64.b64encode(messge_enc)
         signature = (
             b"data=" + messge_enc + b"||pv=" + protocol.encode() + b"||" + local_key.encode()
         )
-        signature = md5(signature).hexdigest()[8 : 8 + 16].encode()
+        signature = md5(signature).hexdigest()[SIGNATURE_START_OFFSET : SIGNATURE_START_OFFSET + SIGNATURE_LENGTH].encode()
         messge_enc = protocol.encode() + signature + messge_enc
     else:
-        timestamp = b"%08d" % ((int(time.time() * 100) % 100000000))
+        timestamp = b"%08d" % ((int(time.time() * TIMESTAMP_MULTIPLIER) % TIMESTAMP_MODULO))
         messge_enc = timestamp + messge_enc
-        crc = binascii.crc32(messge_enc).to_bytes(4, byteorder="big")
+        crc = binascii.crc32(messge_enc).to_bytes(CRC_BYTE_SIZE, byteorder="big")
         messge_enc = protocol.encode() + crc + messge_enc
     print(messge_enc)
     return messge_enc
@@ -62,10 +91,11 @@ class Usage(Exception):
 
 
 def main(argv: Optional[List[str]] = None) -> int:
-    broker = "127.0.0.1"
-    localKey = "0000000000000000"
+    """Main entry point for MQTT protocol 15 publisher."""
+    broker = DEFAULT_BROKER
+    localKey = DEFAULT_LOCAL_KEY
     deviceID = ""
-    protocol = "2.1"
+    protocol = DEFAULT_PROTOCOL
     if argv is None:
         argv = sys.argv
     try:  # getopt
@@ -93,33 +123,35 @@ def main(argv: Optional[List[str]] = None) -> int:
             if option in ("-p", "--protocol"):
                 protocol = value
 
-        if len(localKey) < 10:
+        if len(localKey) < MIN_KEY_LENGTH:
             raise Usage(help_message)
-        if len(deviceID) < 10:
-            raise Usage(help_message)  #
+        if len(deviceID) < MIN_DEVICE_ID_LENGTH:
+            raise Usage(help_message)
     except Usage:
         print(sys.argv[0].split("/")[-1] + ": ")
         print("\t for help use --help")
         print(help_message)
-        return 2
+        return EXIT_ERROR
 
-    if protocol == "2.1":
-        message = '{"data":{"gwId":"%s"},"protocol":15,"s":%d,"t":%d}' % (
+    if protocol == PROTOCOL_VERSION_21:
+        message = '{"data":{"gwId":"%s"},"protocol":%d,"s":%d,"t":%d}' % (
             deviceID,
-            1523715,
+            PROTOCOL_NUMBER,
+            TUYA_SEQUENCE_NUMBER,
             time.time(),
         )
     else:
-        message = '{"data":{"gwId":"%s"},"protocol":15,"s":"%d","t":"%d"}' % (
+        message = '{"data":{"gwId":"%s"},"protocol":%d,"s":"%d","t":"%d"}' % (
             deviceID,
-            1523715,
+            PROTOCOL_NUMBER,
+            TUYA_SEQUENCE_NUMBER,
             time.time(),
         )
     print("encoding", message, "using protocol", protocol)
     m1 = iot_enc(message, localKey, protocol)
 
     publish.single("smart/device/in/%s" % (deviceID), m1, hostname=broker)
-    return 0
+    return EXIT_SUCCESS
 
 
 if __name__ == "__main__":
