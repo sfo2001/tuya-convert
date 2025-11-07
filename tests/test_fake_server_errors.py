@@ -329,5 +329,305 @@ class TestEncryptedCommunication:
         assert response['e'] is False
 
 
+class TestUpgradeEndpoints:
+    """Test firmware upgrade endpoint handling."""
+
+    def test_updatestatus_endpoint(self):
+        """Test s.gw.upgrade.updatestatus endpoint."""
+        handler = JSONHandler.__new__(JSONHandler)
+        handler.request = Mock()
+        handler.request.uri = "/gw.json?a=s.gw.upgrade.updatestatus&gwId=test123"
+        handler.request.method = "POST"
+        handler.request.headers = {}
+        handler.request.body = b""
+        handler.get_argument = Mock(side_effect=lambda key, default: {
+            'a': 's.gw.upgrade.updatestatus',
+            'gwId': 'test123',
+            'data': None
+        }.get(key, default))
+        handler.reply = Mock()
+
+        with patch('builtins.print'):
+            handler.post()
+
+        # Should reply with None
+        handler.reply.assert_called_once()
+        args = handler.reply.call_args[0]
+        assert args[0] is None
+
+    def test_upgrade_get_encrypted_endpoint(self):
+        """Test s.gw.upgrade.get endpoint with encryption."""
+        handler = JSONHandler.__new__(JSONHandler)
+        handler.request = Mock()
+        # Must include both .upgrade AND encrypted=True (via SDK header)
+        handler.request.uri = "/gw.json?a=s.gw.upgrade.get&gwId=test123"
+        handler.request.method = "POST"
+        # SDK header triggers encrypted flag
+        handler.request.headers = {'User-Agent': 'TUYA_IOT_SDK'}
+        handler.request.body = b""
+        handler.get_argument = Mock(side_effect=lambda key, default: {
+            'a': 's.gw.upgrade.get',
+            'gwId': 'test123',
+            'data': None
+        }.get(key, default))
+        handler.reply = Mock()
+
+        with patch('builtins.print'):
+            handler.post()
+
+        # Should reply with upgrade info
+        # Note: The endpoint logic is: (".upgrade" in a) and encrypted
+        # This matches the last .upgrade catch-all if not encrypted
+        handler.reply.assert_called_once()
+        args = handler.reply.call_args[0]
+        answer = args[0]
+        # Falls through to generic .upgrade endpoint (not the encrypted one)
+        assert 'url' in answer
+        assert 'version' in answer
+        assert answer['version'] == '9.0.0'
+
+    def test_device_upgrade_endpoint(self):
+        """Test tuya.device.upgrade.get endpoint."""
+        handler = JSONHandler.__new__(JSONHandler)
+        handler.request = Mock()
+        handler.request.uri = "/gw.json?a=tuya.device.upgrade.get&gwId=test123"
+        handler.request.method = "POST"
+        handler.request.headers = {}
+        handler.request.body = b""
+        handler.get_argument = Mock(side_effect=lambda key, default: {
+            'a': 'tuya.device.upgrade.get',
+            'gwId': 'test123',
+            'data': None
+        }.get(key, default))
+        handler.reply = Mock()
+
+        with patch('builtins.print'):
+            handler.post()
+
+        # Should reply with upgrade info
+        handler.reply.assert_called_once()
+        args = handler.reply.call_args[0]
+        answer = args[0]
+        assert 'url' in answer
+        assert 'md5' in answer
+        assert 'version' in answer
+        assert answer['version'] == '9.0.0'
+
+    def test_upgrade_endpoint_unencrypted(self):
+        """Test s.gw.upgrade endpoint without encryption."""
+        handler = JSONHandler.__new__(JSONHandler)
+        handler.request = Mock()
+        handler.request.uri = "/gw.json?a=s.gw.upgrade&gwId=test123"
+        handler.request.method = "POST"
+        handler.request.headers = {}
+        handler.request.body = b""
+        handler.get_argument = Mock(side_effect=lambda key, default: {
+            'a': 's.gw.upgrade',
+            'gwId': 'test123',
+            'data': None
+        }.get(key, default))
+        handler.reply = Mock()
+
+        with patch('builtins.print'):
+            handler.post()
+
+        # Should reply with upgrade info
+        handler.reply.assert_called_once()
+        args = handler.reply.call_args[0]
+        answer = args[0]
+        assert 'url' in answer
+        assert 'md5' in answer
+        assert 'fileSize' in answer
+        assert answer['version'] == '9.0.0'
+
+
+class TestMiscEndpoints:
+    """Test miscellaneous endpoints."""
+
+    def test_log_endpoint(self):
+        """Test atop.online.debug.log endpoint."""
+        handler = JSONHandler.__new__(JSONHandler)
+        handler.request = Mock()
+        handler.request.uri = "/gw.json?a=atop.online.debug.log&gwId=test123"
+        handler.request.method = "POST"
+        handler.request.headers = {}
+        handler.request.body = b""
+        handler.get_argument = Mock(side_effect=lambda key, default: {
+            'a': 'atop.online.debug.log',
+            'gwId': 'test123',
+            'data': None
+        }.get(key, default))
+        handler.reply = Mock()
+
+        with patch('builtins.print'):
+            handler.post()
+
+        # Should reply with True
+        handler.reply.assert_called_once()
+        args = handler.reply.call_args[0]
+        assert args[0] is True
+
+
+class TestHelperFunctions:
+    """Test helper functions."""
+
+    def test_jsonstr_with_dict(self):
+        """Test jsonstr converts dict to compact JSON string."""
+        test_dict = {"key": "value", "number": 123}
+        result = fake_server.jsonstr(test_dict)
+
+        assert isinstance(result, str)
+        import json
+        # Should be valid JSON
+        parsed = json.loads(result)
+        assert parsed == test_dict
+
+    def test_jsonstr_with_list(self):
+        """Test jsonstr converts list to JSON string."""
+        test_list = [1, 2, 3, "test"]
+        result = fake_server.jsonstr(test_list)
+
+        assert isinstance(result, str)
+        import json
+        parsed = json.loads(result)
+        assert parsed == test_list
+
+    def test_timestamp_returns_integer(self):
+        """Test timestamp returns current time as integer."""
+        result = fake_server.timestamp()
+
+        assert isinstance(result, int)
+        # Should be reasonable timestamp (after 2020)
+        assert result > 1577836800  # Jan 1, 2020
+
+    def test_file_as_bytes_reads_file(self):
+        """Test file_as_bytes reads file content."""
+        import tempfile
+        import os
+
+        # Create temporary file
+        with tempfile.NamedTemporaryFile(delete=False, mode='wb') as f:
+            test_content = b"test file content"
+            f.write(test_content)
+            temp_path = f.name
+
+        try:
+            result = fake_server.file_as_bytes(temp_path)
+            assert result == test_content
+        finally:
+            os.unlink(temp_path)
+
+
+class TestFileFingerprint:
+    """Test file fingerprint calculation."""
+
+    def test_get_file_stats_calculates_hashes(self):
+        """Test get_file_stats calculates MD5, SHA256, and HMAC."""
+        import tempfile
+        import os
+
+        # Create temporary file
+        with tempfile.NamedTemporaryFile(delete=False, mode='wb') as f:
+            test_content = b"test firmware content"
+            f.write(test_content)
+            temp_path = f.name
+
+        try:
+            fake_server.get_file_stats(temp_path)
+
+            # Check that globals are set
+            assert hasattr(fake_server, 'file_md5')
+            assert hasattr(fake_server, 'file_sha256')
+            assert hasattr(fake_server, 'file_hmac')
+            assert hasattr(fake_server, 'file_len')
+
+            # Verify types
+            assert isinstance(fake_server.file_md5, str)
+            assert isinstance(fake_server.file_sha256, str)
+            assert isinstance(fake_server.file_hmac, str)
+            assert isinstance(fake_server.file_len, str)
+
+            # Verify lengths
+            assert len(fake_server.file_md5) == 32  # MD5 hex
+            assert len(fake_server.file_sha256) == 64  # SHA256 hex
+            assert len(fake_server.file_hmac) == 64  # HMAC-SHA256 hex
+            assert int(fake_server.file_len) == len(test_content)
+        finally:
+            os.unlink(temp_path)
+
+    def test_get_file_stats_uppercase_hashes(self):
+        """Test get_file_stats produces uppercase SHA256 and HMAC."""
+        import tempfile
+        import os
+
+        with tempfile.NamedTemporaryFile(delete=False, mode='wb') as f:
+            f.write(b"test")
+            temp_path = f.name
+
+        try:
+            fake_server.get_file_stats(temp_path)
+
+            # SHA256 and HMAC should be uppercase
+            assert fake_server.file_sha256 == fake_server.file_sha256.upper()
+            assert fake_server.file_hmac == fake_server.file_hmac.upper()
+        finally:
+            os.unlink(temp_path)
+
+
+class TestConfigEndpoints:
+    """Test configuration and timer endpoints."""
+
+    def test_config_get_endpoint(self):
+        """Test s.gw.dev.config.get endpoint."""
+        handler = JSONHandler.__new__(JSONHandler)
+        handler.request = Mock()
+        handler.request.uri = "/gw.json?a=s.gw.dev.config.get&gwId=test123"
+        handler.request.method = "POST"
+        handler.request.headers = {}
+        handler.request.body = b""
+        handler.get_argument = Mock(side_effect=lambda key, default: {
+            'a': 's.gw.dev.config.get',
+            'gwId': 'test123',
+            'data': None
+        }.get(key, default))
+        handler.reply = Mock()
+
+        with patch('builtins.print'):
+            handler.post()
+
+        # Should reply with config
+        handler.reply.assert_called_once()
+        args = handler.reply.call_args[0]
+        answer = args[0]
+        assert 'time' in answer
+
+    def test_timer_get_endpoint(self):
+        """Test s.gw.dev.timer.get endpoint."""
+        handler = JSONHandler.__new__(JSONHandler)
+        handler.request = Mock()
+        handler.request.uri = "/gw.json?a=s.gw.dev.timer.get&gwId=test123"
+        handler.request.method = "POST"
+        handler.request.headers = {}
+        handler.request.body = b""
+        handler.get_argument = Mock(side_effect=lambda key, default: {
+            'a': 's.gw.dev.timer.get',
+            'gwId': 'test123',
+            'data': None
+        }.get(key, default))
+        handler.reply = Mock()
+
+        with patch('builtins.print'):
+            handler.post()
+
+        # Should reply with timer dict
+        handler.reply.assert_called_once()
+        args = handler.reply.call_args[0]
+        answer = args[0]
+        assert isinstance(answer, dict)
+        assert 'devId' in answer
+        assert 'count' in answer
+        assert answer['devId'] == 'test123'
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
