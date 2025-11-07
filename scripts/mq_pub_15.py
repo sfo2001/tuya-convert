@@ -11,6 +11,7 @@ import getopt
 import sys
 import time
 from hashlib import md5
+from typing import List, Optional
 
 import paho.mqtt.publish as publish
 
@@ -27,13 +28,15 @@ iot:
 from crypto_utils import decrypt, encrypt
 
 
-def iot_dec(message, local_key):
+def iot_dec(message: str, local_key: str) -> str:
+    """Decrypt IoT message from base64-encoded format."""
     message_clear = decrypt(base64.b64decode(message[19:]), local_key.encode())
     print(message_clear)
     return message_clear
 
 
-def iot_enc(message, local_key, protocol):
+def iot_enc(message: str, local_key: str, protocol: str) -> bytes:
+    """Encrypt IoT message with protocol-specific formatting."""
     messge_enc = encrypt(message, local_key.encode())
     if protocol == "2.1":
         messge_enc = base64.b64encode(messge_enc)
@@ -52,11 +55,13 @@ def iot_enc(message, local_key, protocol):
 
 
 class Usage(Exception):
-    def __init__(self, msg):
+    """Exception raised for usage errors."""
+
+    def __init__(self, msg: str) -> None:
         self.msg = msg
 
 
-def main(argv=None):
+def main(argv: Optional[List[str]] = None) -> int:
     broker = "127.0.0.1"
     localKey = "0000000000000000"
     deviceID = ""
@@ -114,6 +119,7 @@ def main(argv=None):
     m1 = iot_enc(message, localKey, protocol)
 
     publish.single("smart/device/in/%s" % (deviceID), m1, hostname=broker)
+    return 0
 
 
 if __name__ == "__main__":

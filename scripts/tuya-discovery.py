@@ -9,6 +9,7 @@ Discover Tuya devices on the LAN via UDP broadcast
 import asyncio
 import json
 from hashlib import md5
+from typing import Tuple
 
 from crypto_utils import decrypt
 
@@ -19,7 +20,10 @@ devices_seen = set()
 
 
 class TuyaDiscovery(asyncio.DatagramProtocol):
-    def datagram_received(self, data, addr):
+    """AsyncIO protocol for discovering Tuya devices via UDP broadcasts."""
+
+    def datagram_received(self, data: bytes, addr: Tuple[str, int]) -> None:
+        """Handle received UDP datagram from Tuya device."""
         # ignore devices we've already seen
         if data in devices_seen:
             return
@@ -28,9 +32,9 @@ class TuyaDiscovery(asyncio.DatagramProtocol):
         data = data[20:-8]
         # decrypt if encrypted
         try:
-            data = decrypt_udp(data)
+            data = decrypt_udp(data)  # type: ignore[assignment]
         except:
-            data = data.decode()
+            data = data.decode()  # type: ignore[assignment]
         print(addr[0], data)
         # parse json
         try:
@@ -38,7 +42,7 @@ class TuyaDiscovery(asyncio.DatagramProtocol):
             # there is a typo present only in Tuya SDKs for non-ESP devices ("ablilty")
             # it is spelled correctly in the Tuya SDK for the ESP ("ability")
             # we can use this as a clue to report unsupported devices
-            if "ablilty" in data:
+            if "ablilty" in data:  # type: ignore[operator]
                 print(
                     "WARNING: it appears this device does not use an ESP82xx and therefore cannot install ESP based firmware"
                 )
@@ -46,7 +50,8 @@ class TuyaDiscovery(asyncio.DatagramProtocol):
             pass
 
 
-def main():
+def main() -> None:
+    """Start UDP listeners for Tuya device discovery on ports 6666 and 6667."""
     loop = asyncio.get_event_loop()
     listener = loop.create_datagram_endpoint(TuyaDiscovery, local_addr=("0.0.0.0", 6666))
     encrypted_listener = loop.create_datagram_endpoint(TuyaDiscovery, local_addr=("0.0.0.0", 6667))

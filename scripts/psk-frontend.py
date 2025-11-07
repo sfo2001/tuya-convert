@@ -5,6 +5,7 @@ import socket
 import ssl
 from binascii import hexlify, unhexlify
 from hashlib import md5
+from typing import List, Tuple
 
 from Cryptodome.Cipher import AES
 from sslpsk3 import SSLPSKContext
@@ -12,7 +13,8 @@ from sslpsk3 import SSLPSKContext
 IDENTITY_PREFIX = b"BAohbmd6aG91IFR1"
 
 
-def listener(host, port):
+def listener(host: str, port: int) -> socket.socket:
+    """Create a listening socket on the specified host and port."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind((host, port))
@@ -20,17 +22,19 @@ def listener(host, port):
     return sock
 
 
-def client(host, port):
+def client(host: str, port: int) -> socket.socket:
+    """Create a client socket connected to the specified host and port."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((host, port))
     return sock
 
 
-def gen_psk(identity, hint):
+def gen_psk(identity: bytes, hint: bytes) -> bytes:
+    """Generate pre-shared key from identity and hint using AES-CBC."""
     print("ID: %s" % hexlify(identity).decode())
     identity = identity[1:]
     if identity[:16] != IDENTITY_PREFIX:
-        print("Prefix: %s" % identity[:16])
+        print("Prefix: %s" % identity[:16])  # type: ignore[str-bytes-safe]
     key = md5(hint[-16:]).digest()
     iv = md5(identity).digest()
     cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -40,24 +44,27 @@ def gen_psk(identity, hint):
 
 
 class PskFrontend:
-    def __init__(self, listening_host, listening_port, host, port):
-        self.listening_port = listening_port
-        self.listening_host = listening_host
-        self.host = host
-        self.port = port
+    """TLS-PSK frontend that proxies connections to a backend server."""
 
-        self.server_sock = listener(listening_host, listening_port)
-        self.sessions = []
-        self.hint = b"1dHRsc2NjbHltbGx3eWh5" b"0000000000000000"
+    def __init__(self, listening_host: str, listening_port: int, host: str, port: int) -> None:
+        self.listening_port: int = listening_port
+        self.listening_host: str = listening_host
+        self.host: str = host
+        self.port: int = port
 
-    def readables(self):
+        self.server_sock: socket.socket = listener(listening_host, listening_port)
+        self.sessions: List[Tuple[socket.socket, socket.socket]] = []
+        self.hint: bytes = b"1dHRsc2NjbHltbGx3eWh5" b"0000000000000000"
+
+    def readables(self) -> List[socket.socket]:
+        """Return list of sockets to monitor for readable data."""
         readables = [self.server_sock]
         for s1, s2 in self.sessions:
             readables.append(s1)
             readables.append(s2)
         return readables
 
-    def new_client(self, s1):
+    def new_client(self, s1: socket.socket) -> None:
         try:
             # Create SSLPSKContext for TLS-PSK connection
             context = SSLPSKContext(ssl.PROTOCOL_TLS_SERVER)
@@ -82,7 +89,8 @@ class PskFrontend:
         except Exception as e:
             print(e)
 
-    def data_ready_cb(self, s):
+    def data_ready_cb(self, s: socket.socket) -> None:
+        """Handle readable data on a socket."""
         if s == self.server_sock:
             _s, frm = s.accept()
             print("new client on port %d from %s:%d" % (self.listening_port, frm[0], frm[1]))
@@ -109,12 +117,13 @@ class PskFrontend:
                         pass
 
 
-def main():
+def main() -> None:
+    """Run PSK frontend proxies for TLS-PSK and MQTT connections."""
     gateway = "10.42.42.1"
     proxies = [PskFrontend(gateway, 443, gateway, 80), PskFrontend(gateway, 8886, gateway, 1883)]
 
     while True:
-        readables = []
+        readables: List[socket.socket] = []
         for p in proxies:
             readables = readables + p.readables()
         r, _, _ = select.select(readables, [], [])
